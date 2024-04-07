@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 056c9d90afdf5b74c8f41ef5730d7687
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - comp: {fileID: 7200000, guid: 2b56a617f670d1347ac34c82f58df6ae, type: 3}
+  - shadeMat: {instanceID: 0}
+  - mesh: {instanceID: 0}
+  - meshTransform: {instanceID: 0}
+  - normalMap: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,35 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture3D<float4> Result;
+
+float dt;
+float3 texRes;
+float3 compress; 
+float pi = 3.1415926535;
+#include "noiseSimplex.cginc"
+[numthreads(8, 8, 8)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    
+    //3D sign wave with noise affected; smaller at bottom and bigger at top
+    float3 pos = float3((id.x / (float) texRes.x), (id.y / (float) texRes.y), (id.z / (float) texRes.z));
+    float noise = 1;
+    //float xSin = sin(pos.z * 2 + dt/2);
+    //float zSin = sin(pos.x * 2 + dt/2);
+    //float TDSinWave = smoothstep((xSin + zSin) * 0.25 + 3, 0, pos.y);
+    //float TDSinWave = step(pos.y, (xSin + zSin) * 0.25 + 0.5);
+    //float cone = step(length(pos.xz - 0.5) * 2 + 0.1, pos.y);
+    float cone = smoothstep(length(pos.xz - 0.5) * 1.8, length(pos.xz - 0.5) * 3 + 0.1, pos.y);
+    noise = cone;
+    compress.y *= pos.y * 2 + 0.5;
+    noise *= 1 - (snoise(float4((pos - float3(0.5, 0, 0.5)) * compress - float3(0, dt / 1.5, 0), dt / 15 * (1 - (pos.y * 0.2)))) * pos.y * 25);
+    noise = clamp(noise, 0, 1-pos);
+    noise *= 1 - pos.y;
+    noise *= pos.y * 1.2;
+    //noise *= (pos.y + 0.25) * 10;
+    //noise *= step(length(pos.xz - 0.5), 0.2);
+    Result[id.xyz] = noise;
+} //Vector3(1.39999998,1.5,1.39999998)
