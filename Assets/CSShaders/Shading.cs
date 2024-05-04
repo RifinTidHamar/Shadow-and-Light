@@ -251,8 +251,8 @@ public class Shading : MonoBehaviour
         comp.SetBuffer(lightHandel, "lights", lightBuffer);
         comp.Dispatch(lightHandel, texRes / 8, texRes / 8, 1);
 
-        comp.SetTexture(shadowHandle, "light", lighCastText);
-        comp.SetTexture(shadowHandle, "shad", shadowText);
+        comp.SetTexture(shadowHandle, "RlTLight", lighCastText);
+        //comp.SetTexture(shadowHandle, "shad", shadowText);
         comp.SetTexture(shadowHandle, "Result", ResultText);
         comp.Dispatch(shadowHandle, texRes / 8, texRes / 8, 1);
 

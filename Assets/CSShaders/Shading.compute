@@ -43,7 +43,7 @@ RWStructuredBuffer<usedUV> usedUVs;
 RWTexture2D<float4> Result; //finalResult
 
 RWTexture2D<float4> RlTLight; //real time light
-RWTexture2D<float4> BLight; //baked light
+//RWTexture2D<float4> BLight; //baked light
 //RWTexture2D<float4> shad;
 RWTexture2D<float4> nm;
 
@@ -212,7 +212,7 @@ void BlurAndApplyShadow(uint3 id : SV_DispatchThreadID)
     //    }
     //    shad[id.xy] += result;
     //}
-    float4 col = light[id.xy]; // * (shad[id.xy].x);
+    float4 col = RlTLight[id.xy]; // * (shad[id.xy].x);
     Result[id.xy] = col;
 }
 
