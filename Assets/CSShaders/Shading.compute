@@ -40,9 +40,11 @@ StructuredBuffer<MeshTriangle> triangles;
 StructuredBuffer<CSLight> lights;
 RWStructuredBuffer<usedUV> usedUVs;
 
-RWTexture2D<float4> Result;
-RWTexture2D<float4> light;
-RWTexture2D<float4> shad;
+RWTexture2D<float4> Result; //finalResult
+
+RWTexture2D<float4> RlTLight; //real time light
+RWTexture2D<float4> BLight; //baked light
+//RWTexture2D<float4> shad;
 RWTexture2D<float4> nm;
 
 int numLights;
@@ -100,8 +102,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 void DynamicLight(uint3 id : SV_DispatchThreadID)
 {
 	float4 amb = float4(0.3/2, 0.15/2, 0.15/2, 1);
-    light[id.xy] = amb; //ambient light
-    shad[id.xy] = 1;
+    RlTLight[id.xy] = amb; //ambient light
+    //shad[id.xy] = 1;
 	float4 totalCol = 0;
     float4 shadowVal = 0;
 	usedUVs[texRes * id.y + id.x].lit = 1;
@@ -119,8 +121,10 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 			float angleBetweenLightAndLoc = dot(lightVec, usedUVs[texRes * id.y + id.x].normal);
             if (dist < maxDist && angleBetweenLightAndLoc < 0)
             {
-                bool lightHits = true;
+                bool shadowHit = false;
+                float lightHide = 1;
                 float distFromInterToUV = 0;
+                float distFromLightToPlane = 0;
                 for (int j = 0; j < numTriangles; j++)
                 {
                     //float3 colliderProjection = triangles[i].p1WPos - uvWPos;
@@ -129,7 +133,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 
                     if (abs(parallelDot) >= -eps) // if they are not, then they intersect (consider adding epsilon)
                     {
-                        float distFromLightToPlane = dot((triangles[j].p1WPos - lightLoc), triangles[j].normal) / parallelDot; //find if they intersect behind the ray origin (whatever that means?)
+                        distFromLightToPlane = dot((triangles[j].p1WPos - lightLoc), triangles[j].normal) / parallelDot; //find if they intersect behind the ray origin (whatever that means?)
                         if (distFromLightToPlane >= dist - eps)
                         {
                             continue;
@@ -160,28 +164,31 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 
                             if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
                             {
-                                float newDist = clamp(length(inters - uvWPos) / 20, 0, 1);
+                                float newDist = length(inters - uvWPos);
                                 distFromInterToUV = max(newDist, distFromInterToUV);
-                                lightHits = false;
+                                shadowHit = true;
                             }
                         }
                     }
                 }
-                if (lightHits)
+                //if(shadowHit)
+                //{
+                //    //lightHide = (distFromInterToUV / dist);
+                //    //lightHide *= lightHide * lightHide;
+                //    //float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc * lightHide;
+                //    //totalCol = lerp(totalCol, lightCol, val * val * usedUVs[texRes * id.y + id.x].lit);
+
+                //    break;
+                //}
+                if(!shadowHit)
                 {
                     float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc;
                     totalCol = lerp(totalCol, lightCol, val * val * usedUVs[texRes * id.y + id.x].lit);
                 }
-                //if(!lightHits)
-                //{
-                //    float4 val = distFromInterToUV * distFromInterToUV;
-                //    totalCol = 0;//float4(val.xy, 0, 1); //
-                //    break;
-                //}
             }
         }
-        light[id.xy] += totalCol;
-        shad[id.xy] = shadowVal;
+        RlTLight[id.xy] += totalCol;
+        //shad[id.xy] = shadowVal;
     }
 }
 

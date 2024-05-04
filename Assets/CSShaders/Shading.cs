@@ -22,7 +22,7 @@ public class Shading : MonoBehaviour
     int lightHandel;
     int shadowHandle;
     int dtID;
-
+     
     struct MeshTriangle
     {
         public Vector3 p1WPos;
@@ -213,30 +213,6 @@ public class Shading : MonoBehaviour
         //comp.SetInt("texRes", texRes);
         shadeMat.SetTexture("_ShadowTex", lighCastText);
 
-        for (int i = 0; i < CSlightNum; i++)
-        {
-            lightArr[i].loc = lightObject[i].gameObject.transform.position;
-            lightArr[i].color = lightData[i].color;
-            lightArr[i].range = lightData[i].range;
-            lightArr[i].intensity = lightData[i].intensity;
-        }
-        lightBuffer.SetData(lightArr);
-
-        comp.SetTexture(lightHandel, "light", lighCastText);
-        comp.SetBuffer(lightHandel, "lights", lightBuffer);
-        comp.Dispatch(lightHandel, texRes / 8, texRes / 8, 1);
-        uint x;
-        uint y;
-        uint z;
-        comp.GetKernelThreadGroupSizes(lightHandel, out x, out y, out z);
-        Debug.Log(x + " " + y + " " + z);
-        Debug.Log(CSlightNum);
-    }
-
-
-    // Update is called once per frame
-    void Update()
-    {
         //for (int i = 0; i < CSlightNum; i++)
         //{
         //    lightArr[i].loc = lightObject[i].gameObject.transform.position;
@@ -247,21 +223,45 @@ public class Shading : MonoBehaviour
         //lightBuffer.SetData(lightArr);
 
         //comp.SetTexture(lightHandel, "light", lighCastText);
-        //comp.SetTexture(lightHandel, "shad", shadowText);
         //comp.SetBuffer(lightHandel, "lights", lightBuffer);
         //comp.Dispatch(lightHandel, texRes / 8, texRes / 8, 1);
-
-        //comp.SetTexture(shadowHandle, "light", lighCastText);
-        //comp.SetTexture(shadowHandle, "shad", shadowText);
-        //comp.SetTexture(shadowHandle, "Result", ResultText);
-        //comp.Dispatch(shadowHandle, texRes / 8, texRes / 8, 1);
-
         //uint x;
         //uint y;
         //uint z;
         //comp.GetKernelThreadGroupSizes(lightHandel, out x, out y, out z);
         //Debug.Log(x + " " + y + " " + z);
         //Debug.Log(CSlightNum);
+    }
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        for (int i = 0; i < CSlightNum; i++)
+        {
+            lightArr[i].loc = lightObject[i].gameObject.transform.position;
+            lightArr[i].color = lightData[i].color;
+            lightArr[i].range = lightData[i].range;
+            lightArr[i].intensity = lightData[i].intensity;
+        }
+        lightBuffer.SetData(lightArr);
+
+        comp.SetTexture(lightHandel, "RlTLight", lighCastText);
+        comp.SetTexture(lightHandel, "shad", shadowText);
+        comp.SetBuffer(lightHandel, "lights", lightBuffer);
+        comp.Dispatch(lightHandel, texRes / 8, texRes / 8, 1);
+
+        comp.SetTexture(shadowHandle, "light", lighCastText);
+        comp.SetTexture(shadowHandle, "shad", shadowText);
+        comp.SetTexture(shadowHandle, "Result", ResultText);
+        comp.Dispatch(shadowHandle, texRes / 8, texRes / 8, 1);
+
+        uint x;
+        uint y;
+        uint z;
+        comp.GetKernelThreadGroupSizes(lightHandel, out x, out y, out z);
+        Debug.Log(x + " " + y + " " + z);
+        Debug.Log(CSlightNum);
     }
 
     private void OnApplicationQuit()

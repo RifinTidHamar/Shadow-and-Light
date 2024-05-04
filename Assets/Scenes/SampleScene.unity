@@ -694,6 +694,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &110046767
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1082,7 +1083,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1120,6 +1121,124 @@ MonoBehaviour:
   mesh: {fileID: -462981019419857548, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
   meshTransform: {fileID: 189277298}
   normalMap: {fileID: 2800000, guid: 760e5518650acde4eb26b61fe3ff5b87, type: 3}
+--- !u!1 &200116610
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 200116613}
+  - component: {fileID: 200116612}
+  - component: {fileID: 200116611}
+  m_Layer: 0
+  m_Name: Point Light
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &200116611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200116610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+--- !u!108 &200116612
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200116610}
+  m_Enabled: 1
+  serializedVersion: 10
+  m_Type: 2
+  m_Shape: 0
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 1
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+--- !u!4 &200116613
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200116610}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -55.418015, y: -292.12286, z: 19.93835}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &250161811
 GameObject:
   m_ObjectHideFlags: 0
@@ -1517,6 +1636,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &303853927
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1665,7 +1785,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &326594039
 Transform:
   m_ObjectHideFlags: 0
@@ -2388,6 +2508,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &471228570
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2752,6 +2873,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &509804275
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2923,7 +3045,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: d7404d483c4dfd94f8860c9fc9c7cfd3, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2866565244158422450, guid: d7404d483c4dfd94f8860c9fc9c7cfd3, type: 3}
       propertyPath: m_IsActive
@@ -3130,6 +3252,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!114 &525116895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3195,6 +3318,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &579441519
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3310,6 +3434,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &585686716
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3863,6 +3988,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &695782658
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3978,6 +4104,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &721448907
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4093,6 +4220,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &724038801
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4664,6 +4792,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &827153784
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4862,6 +4991,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &865213452
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5060,6 +5190,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &881679138
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5243,6 +5374,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &895270091
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5407,7 +5539,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &917860289
 Transform:
   m_ObjectHideFlags: 0
@@ -5621,7 +5753,7 @@ Transform:
   m_GameObject: {fileID: 960437516}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.55, y: 7.33, z: 2.23}
+  m_LocalPosition: {x: -2.27, y: 7.33, z: 6.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5634,7 +5766,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 960437516}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f0f4a46f4819c04d96dead2d21ef4eb, type: 3}
   m_Name: 
@@ -5654,9 +5786,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a2aadd7babec244aa6c61795d19ef4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 1, g: 0.3254902, b: 0, a: 0}
-  range: 55
+  color: {r: 1, g: 0.3254902, b: 0, a: 1}
+  range: 70
   intensity: 1.5
+  baked: 0
 --- !u!23 &960437520
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5840,6 +5973,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &1025427103
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6144,6 +6278,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &1065061640
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6444,6 +6579,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1092123719
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6657,6 +6793,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1173077421
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7233,6 +7370,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1249259505
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7348,6 +7486,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1254036987
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7448,6 +7587,7 @@ MonoBehaviour:
   color: {r: 1, g: 1, b: 1, a: 0}
   range: 60
   intensity: 3
+  baked: 0
 --- !u!23 &1281951526
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7563,6 +7703,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1283211055
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7678,6 +7819,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &1284545537
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7793,6 +7935,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1300356835
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8323,6 +8466,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &1406076240
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8521,6 +8665,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1440941473
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8968,6 +9113,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1521258923
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9249,6 +9395,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1606318623
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9404,7 +9551,7 @@ Camera:
   m_ShutterSpeed: 0.005
   m_Aperture: 16
   m_FocusDistance: 10
-  m_FocalLength: 50
+  m_FocalLength: 20.78461
   m_BladeCount: 5
   m_Curvature: {x: 2, y: 11}
   m_BarrelClipping: 0.25
@@ -9419,7 +9566,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 100000
-  field of view: 60
+  field of view: 60.000004
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -9708,6 +9855,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1654355099
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9823,6 +9971,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.3254902, b: 0, a: 0}
   range: 45
   intensity: 1.5
+  baked: 0
 --- !u!23 &1662728346
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9882,7 +10031,7 @@ Transform:
   m_GameObject: {fileID: 1662728343}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 12.87, y: 14.83, z: 5.48}
+  m_LocalPosition: {x: 23.4, y: 5, z: -26.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10341,7 +10490,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1743983523
 Transform:
   m_ObjectHideFlags: 0
@@ -10525,6 +10674,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1758261991
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10625,6 +10775,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &1762254629
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10740,6 +10891,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1784085578
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11021,6 +11173,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.3254902, b: 0, a: 0}
   range: 45
   intensity: 1.5
+  baked: 0
 --- !u!23 &1834309487
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11234,6 +11387,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1869612554
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11486,6 +11640,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1920654109
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11850,6 +12005,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &1964633261
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12131,6 +12287,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &1994610547
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12246,6 +12403,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 10
   intensity: 0.5
+  baked: 0
 --- !u!23 &1994983982
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12444,6 +12602,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &2065632477
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12642,6 +12801,7 @@ MonoBehaviour:
   color: {r: 1, g: 0.32661325, b: 0, a: 0}
   range: 5
   intensity: 0.7
+  baked: 0
 --- !u!23 &2139071252
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12894,3 +13054,4 @@ SceneRoots:
   - {fileID: 1281951528}
   - {fileID: 1606865127}
   - {fileID: 189277296}
+  - {fileID: 200116613}

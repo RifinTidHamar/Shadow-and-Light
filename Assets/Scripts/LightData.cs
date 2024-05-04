@@ -7,5 +7,6 @@ public class LightData : MonoBehaviour
     public Color color;
     public float range;
     public float intensity;
-
+    public bool baked;
+    public bool castShadow;
 }
