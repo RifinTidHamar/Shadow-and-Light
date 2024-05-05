@@ -13,14 +13,15 @@ public class Shading : MonoBehaviour
     //public Texture2DArray
     RenderTexture normMapTex;
     RenderTexture shadowText;
-    RenderTexture lighCastText;
-    RenderTexture ResultText;
+    RenderTexture RlTLightText;
+    RenderTexture BLightText;
+    RenderTexture finalLightText;
 
     Renderer rend;
 
     int initHandle;
-    int lightHandel;
-    int shadowHandle;
+    int lightHandle;
+    int applyHandle;
     int dtID;
      
     struct MeshTriangle
@@ -54,16 +55,20 @@ public class Shading : MonoBehaviour
     };
 
     ComputeBuffer triangleBuffer;
-    ComputeBuffer lightBuffer;
+    ComputeBuffer RlTLightBuffer;
+    ComputeBuffer BLightBuffer;
     ComputeBuffer usedUVBuffer;
     MeshTriangle[] triangleArr;
-    CSLight[] lightArr;
+    CSLight[] RlTLightArr;
+    CSLight[] BLightArr;
     usedUV[] usedUVsArr;
     int meshTriangleNum;
-    int CSlightNum;
+    int lightNum;
+    int RlTLightNum;
+    int BLightNum;
     int usedUVNum;// = texRes * texRes;
     int meshTriangleSize = sizeof(float) * 18 + sizeof(float) * 6;
-    int CSLightSize = sizeof(float) * 9;
+    int lightSize = sizeof(float) * 9;
     int usedUVSize = sizeof(float) * 9 + sizeof(int) * 1;
     GameObject[] lightObject;
     LightData[] lightData;
@@ -72,15 +77,15 @@ public class Shading : MonoBehaviour
     void Start()
     {
         usedUVNum = texRes * texRes;
-        ResultText = new RenderTexture(texRes, texRes, 4);
-        ResultText.enableRandomWrite = true;
-        ResultText.filterMode = FilterMode.Point;
-        ResultText.Create();
+        finalLightText = new RenderTexture(texRes, texRes, 4);
+        finalLightText.enableRandomWrite = true;
+        finalLightText.filterMode = FilterMode.Point;
+        finalLightText.Create();
 
-        lighCastText = new RenderTexture(texRes, texRes, 4);
-        lighCastText.enableRandomWrite = true;
-        lighCastText.filterMode = FilterMode.Point;
-        lighCastText.Create();
+        RlTLightText = new RenderTexture(texRes, texRes, 4);
+        RlTLightText.enableRandomWrite = true;
+        RlTLightText.filterMode = FilterMode.Point;
+        RlTLightText.Create();
 
         shadowText = new RenderTexture(texRes, texRes, 4);
         shadowText.enableRandomWrite = true;
@@ -92,14 +97,19 @@ public class Shading : MonoBehaviour
         normMapTex.filterMode = FilterMode.Point;
         normMapTex.Create();
 
+        BLightText = new RenderTexture(texRes, texRes, 4);
+        BLightText.enableRandomWrite = true;
+        BLightText.filterMode = FilterMode.Point;
+        BLightText.Create();
+
         rend = GetComponent<Renderer>();
         rend.enabled = true;
 
         rend = GetComponent<Renderer>();
         rend.enabled = true;
         initHandle = comp.FindKernel("CSMain");
-        lightHandel = comp.FindKernel("DynamicLight");
-        shadowHandle = comp.FindKernel("BlurAndApplyShadow");
+        lightHandle = comp.FindKernel("DynamicLight");
+        applyHandle = comp.FindKernel("BlurAndApplyShadow");
 
         populateArray();
         initShader();
@@ -108,20 +118,20 @@ public class Shading : MonoBehaviour
     void populateArray()
     {
         lightObject = GameObject.FindGameObjectsWithTag("Light");
-        CSlightNum = lightObject.Length;
-        lightArr = new CSLight[CSlightNum];
-        lightData = new LightData[CSlightNum];
-        //TODO: make values changebale in editor
+        lightNum = lightObject.Length;
+        lightData = new LightData[lightNum];
 
-        for (int i = 0; i < CSlightNum; i++)
+        for (int i = 0; i < lightNum; i ++)
         {
             lightData[i] = lightObject[i].gameObject.GetComponent<LightData>();
-
-            lightArr[i].loc = lightObject[i].gameObject.transform.position;
-            lightArr[i].color = lightData[i].color;
-            lightArr[i].range = lightData[i].range;
-            lightArr[i].intensity = lightData[i].intensity;
+            if (lightData[i].baked == true)
+                BLightNum++;
+            else
+                RlTLightNum++;
         }
+
+        RlTLightArr = new CSLight[RlTLightNum];
+        BLightArr = new CSLight[BLightNum];
 
         Vector3[] worldVerts = new Vector3[mesh.vertices.Length];
         for(int i = 0; i < mesh.vertices.Length; i++)
@@ -184,90 +194,118 @@ public class Shading : MonoBehaviour
 
     void initShader()
     {
+        //init
+        comp.SetInt("numTriangles", meshTriangleNum);
+        comp.SetInt("texRes", texRes);
+
         //comp.SetFloat(dtID, 0);
         triangleBuffer = new ComputeBuffer(meshTriangleNum, meshTriangleSize);
-        lightBuffer = new ComputeBuffer(CSlightNum, CSLightSize);
+        if(RlTLightNum != 0)
+            RlTLightBuffer = new ComputeBuffer(RlTLightNum, lightSize);
+        if(BLightNum != 0)
+            BLightBuffer = new ComputeBuffer(BLightNum, lightSize);
         usedUVBuffer = new ComputeBuffer(usedUVNum, usedUVSize);
+        ComputeBuffer lightNumBuff = new ComputeBuffer(1, sizeof(int));
+
         triangleBuffer.SetData(triangleArr);
-        lightBuffer.SetData(lightArr);
         usedUVBuffer.SetData(usedUVsArr);
         Graphics.Blit(normalMap, normMapTex);
         comp.SetTexture(initHandle, "nm", normMapTex);
 
         comp.SetBuffer(initHandle, "triangles", triangleBuffer);
-        comp.SetBuffer(initHandle, "lights", lightBuffer);
         comp.SetBuffer(initHandle, "usedUVs", usedUVBuffer);
-
-        comp.SetBuffer(lightHandel, "triangles", triangleBuffer);
-        comp.SetBuffer(lightHandel, "usedUVs", usedUVBuffer);
-
-
-        comp.SetInt("numLights", CSlightNum);
-        comp.SetInt("numTriangles", meshTriangleNum);
-        comp.SetInt("texRes", texRes);
-
         comp.Dispatch(initHandle, texRes / 8, texRes / 8, 1);
+        //init
 
-        //dtID = Shader.PropertyToID("dt");
-        //comp.SetVector("stretch", new Vector2(2, 2));
-        //comp.SetInt("texRes", texRes);
-        shadeMat.SetTexture("_ShadowTex", lighCastText);
+        //frag
+        shadeMat.SetTexture("_ShadowTex", finalLightText);
+        //frag
 
-        //for (int i = 0; i < CSlightNum; i++)
-        //{
-        //    lightArr[i].loc = lightObject[i].gameObject.transform.position;
-        //    lightArr[i].color = lightData[i].color;
-        //    lightArr[i].range = lightData[i].range;
-        //    lightArr[i].intensity = lightData[i].intensity;
-        //}
-        //lightBuffer.SetData(lightArr);
+        //doesn't change
+        comp.SetBuffer(lightHandle, "triangles", triangleBuffer);
+        comp.SetBuffer(lightHandle, "usedUVs", usedUVBuffer);
+        comp.SetTexture(lightHandle, "shad", shadowText);
+        //doesn't change
 
-        //comp.SetTexture(lightHandel, "light", lighCastText);
-        //comp.SetBuffer(lightHandel, "lights", lightBuffer);
-        //comp.Dispatch(lightHandel, texRes / 8, texRes / 8, 1);
-        //uint x;
-        //uint y;
-        //uint z;
-        //comp.GetKernelThreadGroupSizes(lightHandel, out x, out y, out z);
-        //Debug.Log(x + " " + y + " " + z);
-        //Debug.Log(CSlightNum);
+        //bLight
+        if (BLightNum != 0)
+        {
+            lightNumBuff.SetData(new int[] { BLightNum });
+            comp.SetBuffer(lightHandle, "numLights", lightNumBuff);
+
+            comp.SetTexture(lightHandle, "light", BLightText);
+
+            int BLightInd = 0;
+            for (int i = 0; i < lightNum; i++)
+            {
+                if (lightData[i].baked == true)
+                {
+                    BLightArr[BLightInd].loc = lightObject[i].gameObject.transform.position;
+                    BLightArr[BLightInd].color = lightData[i].color;
+                    BLightArr[BLightInd].range = lightData[i].range;
+                    BLightArr[BLightInd].intensity = lightData[i].intensity;
+                    BLightInd++;
+                }
+            }
+
+            BLightBuffer.SetData(BLightArr);
+            comp.SetBuffer(lightHandle, "lights", BLightBuffer);
+
+            comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
+        }
+        //blight
+
+        //RlTLight
+        if (RlTLightNum != 0)
+        {
+            lightNumBuff.SetData(new int[] { RlTLightNum });
+
+            comp.SetTexture(lightHandle, "light", RlTLightText);
+        }
+        comp.SetTexture(applyHandle, "RlTLight", RlTLightText);
+        comp.SetTexture(applyHandle, "BLight", BLightText);
+        comp.SetTexture(applyHandle, "light", finalLightText);
+        //RlTLight
     }
-
 
     // Update is called once per frame
     void Update()
     {
-        for (int i = 0; i < CSlightNum; i++)
+        if (RlTLightNum != 0)
         {
-            lightArr[i].loc = lightObject[i].gameObject.transform.position;
-            lightArr[i].color = lightData[i].color;
-            lightArr[i].range = lightData[i].range;
-            lightArr[i].intensity = lightData[i].intensity;
+            int RlTLightInd = 0;
+            for (int i = 0; i < lightNum; i++)
+            {
+                if (lightData[i].baked == false)
+                {
+                    RlTLightArr[RlTLightInd].loc = lightObject[i].gameObject.transform.position;
+                    RlTLightArr[RlTLightInd].color = lightData[i].color;
+                    RlTLightArr[RlTLightInd].range = lightData[i].range;
+                    RlTLightArr[RlTLightInd].intensity = lightData[i].intensity;
+                    RlTLightInd++;
+                }
+            }
+            RlTLightBuffer.SetData(RlTLightArr);
+            comp.SetBuffer(lightHandle, "lights", RlTLightBuffer);
+
+            comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
         }
-        lightBuffer.SetData(lightArr);
 
-        comp.SetTexture(lightHandel, "RlTLight", lighCastText);
-        comp.SetTexture(lightHandel, "shad", shadowText);
-        comp.SetBuffer(lightHandel, "lights", lightBuffer);
-        comp.Dispatch(lightHandel, texRes / 8, texRes / 8, 1);
+        comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);
 
-        comp.SetTexture(shadowHandle, "RlTLight", lighCastText);
-        //comp.SetTexture(shadowHandle, "shad", shadowText);
-        comp.SetTexture(shadowHandle, "Result", ResultText);
-        comp.Dispatch(shadowHandle, texRes / 8, texRes / 8, 1);
-
-        uint x;
-        uint y;
-        uint z;
-        comp.GetKernelThreadGroupSizes(lightHandel, out x, out y, out z);
-        Debug.Log(x + " " + y + " " + z);
-        Debug.Log(CSlightNum);
+        //uint x;
+        //uint y;
+        //uint z;
+        //comp.GetKernelThreadGroupSizes(RlTLightHandle, out x, out y, out z);
+        //Debug.Log(x + " " + y + " " + z);
+        //Debug.Log(lightNum);
     }
 
     private void OnApplicationQuit()
     {
         triangleBuffer.Release();
-        lightBuffer.Release();
+        RlTLightBuffer.Release();
+        BLightBuffer.Release();
         usedUVBuffer.Release();
     }
 }

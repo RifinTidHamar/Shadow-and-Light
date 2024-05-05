@@ -39,15 +39,17 @@ struct usedUV
 StructuredBuffer<MeshTriangle> triangles;
 StructuredBuffer<CSLight> lights;
 RWStructuredBuffer<usedUV> usedUVs;
+StructuredBuffer<int> numLights;
 
-RWTexture2D<float4> Result; //finalResult
 
-RWTexture2D<float4> RlTLight; //real time light
-//RWTexture2D<float4> BLight; //baked light
+RWTexture2D<float4> light; //finalResult
+
+RWTexture2D<float4> RlTLight; //real time light texture
+RWTexture2D<float4> BLight; //baked light texture
 //RWTexture2D<float4> shad;
 RWTexture2D<float4> nm;
 
-int numLights;
+//int numLights;
 int numTriangles;
 int texRes;
 static float eps = 0.046;
@@ -102,14 +104,15 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 void DynamicLight(uint3 id : SV_DispatchThreadID)
 {
 	float4 amb = float4(0.3/2, 0.15/2, 0.15/2, 1);
-    RlTLight[id.xy] = amb; //ambient light
+    light[id.xy] = amb; //ambient light
     //shad[id.xy] = 1;
+    //light[id.xy] = 0;
 	float4 totalCol = 0;
     float4 shadowVal = 0;
 	usedUVs[texRes * id.y + id.x].lit = 1;
 	if (usedUVs[texRes * id.y + id.x].used == 1)
 	{
-		for (int i = 0; i < numLights; i++)
+		for (int i = 0; i < numLights[0]; i++)
 		{
 			float3 lightLoc = lights[i].loc;
             float3 locMinusLight = usedUVs[texRes * id.y + id.x].worldLoc - lightLoc;
@@ -187,7 +190,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                 }
             }
         }
-        RlTLight[id.xy] += totalCol;
+        light[id.xy] += totalCol;
         //shad[id.xy] = shadowVal;
     }
 }
@@ -198,7 +201,7 @@ static int kSize = 2;//should be made independent based on texture size
 [numthreads(8, 8, 1)]
 void BlurAndApplyShadow(uint3 id : SV_DispatchThreadID)
 {
- 
+    light[id.xy] = lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
     //if (shad[id.xy].r < 0.5)
     //{
     //    float4 result = shad[id.xy].y;
@@ -212,8 +215,8 @@ void BlurAndApplyShadow(uint3 id : SV_DispatchThreadID)
     //    }
     //    shad[id.xy] += result;
     //}
-    float4 col = RlTLight[id.xy]; // * (shad[id.xy].x);
-    Result[id.xy] = col;
+    //float4 col = [id.xy]; // * (shad[id.xy].x);
+    //light[id.xy] = col;
 }
 
 /*
