@@ -43,6 +43,7 @@ public class Shading : MonoBehaviour
         public Vector4 color;
         public float range;
         public float intensity;
+        public int castShadow;
     }
 
     struct usedUV
@@ -68,7 +69,7 @@ public class Shading : MonoBehaviour
     int BLightNum;
     int usedUVNum;// = texRes * texRes;
     int meshTriangleSize = sizeof(float) * 18 + sizeof(float) * 6;
-    int lightSize = sizeof(float) * 9;
+    int lightSize = sizeof(float) * 9 + sizeof(int) * 1;
     int usedUVSize = sizeof(float) * 9 + sizeof(int) * 1;
     GameObject[] lightObject;
     LightData[] lightData;
@@ -244,6 +245,7 @@ public class Shading : MonoBehaviour
                     BLightArr[BLightInd].color = lightData[i].color;
                     BLightArr[BLightInd].range = lightData[i].range;
                     BLightArr[BLightInd].intensity = lightData[i].intensity;
+                    BLightArr[BLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
                     BLightInd++;
                 }
             }
@@ -252,16 +254,30 @@ public class Shading : MonoBehaviour
             comp.SetBuffer(lightHandle, "lights", BLightBuffer);
 
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
+
+            Shader.EnableKeyword("BAKE");
         }
+        else
+        {
+            Shader.DisableKeyword("BAKE");
+        }
+
         //blight
 
         //RlTLight
         if (RlTLightNum != 0)
         {
             lightNumBuff.SetData(new int[] { RlTLightNum });
-
             comp.SetTexture(lightHandle, "light", RlTLightText);
+
+            Shader.EnableKeyword("RLT");
         }
+        else
+        {
+            Shader.DisableKeyword("RLT");
+        }
+
+
         comp.SetTexture(applyHandle, "RlTLight", RlTLightText);
         comp.SetTexture(applyHandle, "BLight", BLightText);
         comp.SetTexture(applyHandle, "light", finalLightText);
@@ -282,6 +298,7 @@ public class Shading : MonoBehaviour
                     RlTLightArr[RlTLightInd].color = lightData[i].color;
                     RlTLightArr[RlTLightInd].range = lightData[i].range;
                     RlTLightArr[RlTLightInd].intensity = lightData[i].intensity;
+                    RlTLightArr[RlTLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
                     RlTLightInd++;
                 }
             }
