@@ -4,6 +4,8 @@
 #pragma kernel Blur
 #pragma kernel Apply
 
+#define BAKE
+#define RLT
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 
@@ -27,6 +29,7 @@ struct CSLight
 	float4 color;
 	float range;
 	float intensity;
+    int castShadow;
 };
 
 struct usedUV
@@ -138,11 +141,13 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                 bool shadowHit = false;
                 float lightHide = 1;
                 float distFromLightToPlane = 0;
-                for (int j = 0; j < numTriangles; j++)
+                if(lights[i].castShadow == 1)
                 {
+                    for (int j = 0; j < numTriangles; j++)
+                    {
                     //float3 colliderProjection = triangles[i].p1WPos - uvWPos;
 
-                    float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
+                        float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
 
                     if (abs(parallelDot) - eps >= 0) // if they are not, then they intersect
                     {

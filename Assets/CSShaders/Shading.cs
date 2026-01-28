@@ -261,6 +261,11 @@ public class Shading : MonoBehaviour
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
            
         }
+        else
+        {
+            Shader.DisableKeyword("BAKE");
+        }
+
         //blight
 
         //RlTLight
@@ -272,6 +277,12 @@ public class Shading : MonoBehaviour
             comp.SetTexture(lightHandle, "light", RlTLightText);
             comp.SetBuffer(lightHandle, "lights", RlTLightBuffer);
         }
+        else
+        {
+            Shader.DisableKeyword("RLT");
+        }
+
+
         comp.SetTexture(applyHandle, "RlTLight", RlTLightText);
         comp.SetTexture(applyHandle, "BLight", BLightText);
         comp.SetTexture(applyHandle, "light", finalLightText);
@@ -301,6 +312,7 @@ public class Shading : MonoBehaviour
                     RlTLightArr[RlTLightInd].color = lightData[i].color;
                     RlTLightArr[RlTLightInd].range = lightData[i].range;
                     RlTLightArr[RlTLightInd].intensity = lightData[i].intensity;
+                    RlTLightArr[RlTLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
                     RlTLightInd++;
                 }
             }
