@@ -4,23 +4,24 @@ using UnityEngine;
 
 public class Shading : MonoBehaviour
 {
-    public ComputeShader comp;
+    public ComputeShader comp;//compute shader
     public int texRes;
     public Material shadeMat;
     public Mesh mesh;
     public Transform meshTransform;
     public Texture normalMap;
     //public Texture2DArray
-    RenderTexture normMapTex;
+    RenderTexture normMapTex;//normal map texture
     RenderTexture shadowText;
-    RenderTexture RlTLightText;
-    RenderTexture BLightText;
+    RenderTexture RlTLightText;//real time light texture
+    RenderTexture BLightText;//baked light texture
     RenderTexture finalLightText;
 
     Renderer rend;
 
-    int initHandle;
+    int uvToWorldHandle;
     int lightHandle;
+    int blurHandle;
     int applyHandle;
     int dtID;
      
@@ -39,6 +40,7 @@ public class Shading : MonoBehaviour
 
     struct CSLight
     {
+        public int castShadow;
         public Vector3 loc;
         public Vector4 color;
         public float range;
@@ -47,7 +49,8 @@ public class Shading : MonoBehaviour
 
     struct usedUV
     {
-        public Vector2 uvPos;
+        public float distFromShadowedObject;
+        public float distFromLight;
         public Vector3 worldLoc;
         public Vector3 normal;
         public int used;
@@ -68,7 +71,7 @@ public class Shading : MonoBehaviour
     int BLightNum;
     int usedUVNum;// = texRes * texRes;
     int meshTriangleSize = sizeof(float) * 18 + sizeof(float) * 6;
-    int lightSize = sizeof(float) * 9;
+    int lightSize = sizeof(int) * 1 + sizeof(float) * 9;
     int usedUVSize = sizeof(float) * 9 + sizeof(int) * 1;
     GameObject[] lightObject;
     LightData[] lightData;
@@ -105,11 +108,10 @@ public class Shading : MonoBehaviour
         rend = GetComponent<Renderer>();
         rend.enabled = true;
 
-        rend = GetComponent<Renderer>();
-        rend.enabled = true;
-        initHandle = comp.FindKernel("CSMain");
+        uvToWorldHandle = comp.FindKernel("uvToWorld");
         lightHandle = comp.FindKernel("DynamicLight");
-        applyHandle = comp.FindKernel("BlurAndApplyShadow");
+        blurHandle = comp.FindKernel("Blur");
+        applyHandle = comp.FindKernel("Apply");
 
         populateArray();
         initShader();
@@ -117,6 +119,7 @@ public class Shading : MonoBehaviour
 
     void populateArray()
     {
+        //change this so lights register themselves with a list
         lightObject = GameObject.FindGameObjectsWithTag("Light");
         lightNum = lightObject.Length;
         lightData = new LightData[lightNum];
@@ -178,8 +181,10 @@ public class Shading : MonoBehaviour
         usedUVsArr = new usedUV[usedUVNum];
         for(int i = 0; i < usedUVNum; i++)
         {
+            usedUVsArr[i].distFromShadowedObject = 0;
+            usedUVsArr[i].distFromLight = 0;
             usedUVsArr[i].worldLoc = new Vector3(0, 0, 0);
-            usedUVsArr[i].uvPos = new Vector2(0, 0);
+            //usedUVsArr[i].uvPos = new Vector2(0, 0);
             usedUVsArr[i].normal = new Vector3(0, 0, 0);
             usedUVsArr[i].used = 0;
             usedUVsArr[i].lit = 1;
@@ -210,11 +215,11 @@ public class Shading : MonoBehaviour
         triangleBuffer.SetData(triangleArr);
         usedUVBuffer.SetData(usedUVsArr);
         Graphics.Blit(normalMap, normMapTex);
-        comp.SetTexture(initHandle, "nm", normMapTex);
+        comp.SetTexture(uvToWorldHandle, "nm", normMapTex);
 
-        comp.SetBuffer(initHandle, "triangles", triangleBuffer);
-        comp.SetBuffer(initHandle, "usedUVs", usedUVBuffer);
-        comp.Dispatch(initHandle, texRes / 8, texRes / 8, 1);
+        comp.SetBuffer(uvToWorldHandle, "triangles", triangleBuffer);
+        comp.SetBuffer(uvToWorldHandle, "usedUVs", usedUVBuffer);
+        comp.Dispatch(uvToWorldHandle, texRes / 8, texRes / 8, 1);
         //init
 
         //frag
@@ -225,6 +230,7 @@ public class Shading : MonoBehaviour
         comp.SetBuffer(lightHandle, "triangles", triangleBuffer);
         comp.SetBuffer(lightHandle, "usedUVs", usedUVBuffer);
         comp.SetTexture(lightHandle, "shad", shadowText);
+
         //doesn't change
 
         //bLight
@@ -240,6 +246,7 @@ public class Shading : MonoBehaviour
             {
                 if (lightData[i].baked == true)
                 {
+                    BLightArr[BLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
                     BLightArr[BLightInd].loc = lightObject[i].gameObject.transform.position;
                     BLightArr[BLightInd].color = lightData[i].color;
                     BLightArr[BLightInd].range = lightData[i].range;
@@ -252,6 +259,7 @@ public class Shading : MonoBehaviour
             comp.SetBuffer(lightHandle, "lights", BLightBuffer);
 
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
+           
         }
         //blight
 
@@ -259,13 +267,23 @@ public class Shading : MonoBehaviour
         if (RlTLightNum != 0)
         {
             lightNumBuff.SetData(new int[] { RlTLightNum });
+            comp.SetBuffer(lightHandle, "numLights", lightNumBuff);
 
             comp.SetTexture(lightHandle, "light", RlTLightText);
+            comp.SetBuffer(lightHandle, "lights", RlTLightBuffer);
         }
         comp.SetTexture(applyHandle, "RlTLight", RlTLightText);
         comp.SetTexture(applyHandle, "BLight", BLightText);
         comp.SetTexture(applyHandle, "light", finalLightText);
         //RlTLight
+
+        comp.SetBuffer(blurHandle, "usedUVs", usedUVBuffer);
+        comp.SetTexture(blurHandle, "light", finalLightText);
+
+        comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);//apply for baked light, incase there is no real time light
+        //might want to consider blurring rltLight and Baked seperately then combinging, otherwise you are blurring the baked light every frame
+        if (BLightNum != 0)
+            comp.Dispatch(blurHandle, texRes / 8, texRes / 8, 1);
     }
 
     // Update is called once per frame
@@ -278,6 +296,7 @@ public class Shading : MonoBehaviour
             {
                 if (lightData[i].baked == false)
                 {
+                    RlTLightArr[RlTLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
                     RlTLightArr[RlTLightInd].loc = lightObject[i].gameObject.transform.position;
                     RlTLightArr[RlTLightInd].color = lightData[i].color;
                     RlTLightArr[RlTLightInd].range = lightData[i].range;
@@ -286,12 +305,13 @@ public class Shading : MonoBehaviour
                 }
             }
             RlTLightBuffer.SetData(RlTLightArr);
-            comp.SetBuffer(lightHandle, "lights", RlTLightBuffer);
 
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
-        }
 
+        }
         comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);
+        comp.Dispatch(blurHandle, texRes / 8, texRes / 8, 1);
+
 
         //uint x;
         //uint y;
@@ -304,8 +324,8 @@ public class Shading : MonoBehaviour
     private void OnApplicationQuit()
     {
         triangleBuffer.Release();
-        RlTLightBuffer.Release();
-        BLightBuffer.Release();
+        if (RlTLightNum != 0) RlTLightBuffer.Release();
+        if (BLightNum != 0) BLightBuffer.Release();
         usedUVBuffer.Release();
     }
 }

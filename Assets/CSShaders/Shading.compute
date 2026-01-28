@@ -1,7 +1,8 @@
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#pragma kernel uvToWorld
 #pragma kernel DynamicLight
-#pragma kernel BlurAndApplyShadow
+#pragma kernel Blur
+#pragma kernel Apply
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -21,6 +22,7 @@ struct MeshTriangle
 
 struct CSLight
 {
+    int castShadow;
 	float3 loc;
 	float4 color;
 	float range;
@@ -29,7 +31,8 @@ struct CSLight
 
 struct usedUV
 {
-	float2 uvPos;
+    float distFromShadowedObject;
+	float distFromLight;
 	float3 worldLoc;
 	float3 normal;
 	int used;
@@ -46,7 +49,7 @@ RWTexture2D<float4> light; //finalResult
 
 RWTexture2D<float4> RlTLight; //real time light texture
 RWTexture2D<float4> BLight; //baked light texture
-//RWTexture2D<float4> shad;
+RWTexture2D<float4> shad;
 RWTexture2D<float4> nm;
 
 //int numLights;
@@ -54,37 +57,40 @@ int numTriangles;
 int texRes;
 static float eps = 0.046;
 
-/*float hash11(float p)
+float hash11(float p)
 {
-	p = frac(p * 0.1031);
-	p *= p + 33.33;
-	p *= p + p;
-	p = frac(p);
-	//p -= 0.5;
-	return p;
-}*/
+    p = frac(p * 0.1031);
+    p *= p + 33.33;
+    p *= p + p;
+    p = frac(p);
+    //p -= 0.5;
+    return p;
+}
 
 [numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void uvToWorld (uint3 id : SV_DispatchThreadID)
 {
 	//Result[id.xy] = float4(0.01, 0.01, 0., 1); //ambient light
 	float a;
 	float b;
 	float c;
 	float2 curUV = float2((float)id.x / (float)texRes, (float)id.y / (float)texRes);
+    //could be cool to check only half the triangles, and then randomly use pick them.
 	for (int i = 0; i < numTriangles; i++)
 	{
 		float2 p1 = triangles[i].p1Uv;
 		float2 p2 = triangles[i].p2Uv;
 		float2 p3 = triangles[i].p3Uv;
 
+
 		a = ((p2.y - p3.y) * (curUV.x - p3.x) + (p3.x - p2.x) * (curUV.y - p3.y)) / ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
 		b = ((p3.y - p1.y) * (curUV.x - p3.x) + (p1.x - p3.x) * (curUV.y - p3.y)) / ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
 		c = 1 - a - b;
-		if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
+        
+        if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps) //inside triangle
 		{
 			usedUVs[texRes * id.y + id.x].used = 1;
-			usedUVs[texRes * id.y + id.x].uvPos = id.xy;
+			//usedUVs[texRes * id.y + id.x].uvPos = id.xy;//what is its purpose? 
 
 			float3 wp1 = triangles[i].p1WPos;
 			float3 wp2 = triangles[i].p2WPos;
@@ -103,30 +109,34 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void DynamicLight(uint3 id : SV_DispatchThreadID)
 {
-	float4 amb = float4(0.3/2, 0.15/2, 0.15/2, 1);
+	float4 amb = 0;//float4(0.3/2, 0.15/2, 0.15/2, 1);
     light[id.xy] = amb; //ambient light
-    //shad[id.xy] = 1;
-    //light[id.xy] = 0;
 	float4 totalCol = 0;
     float4 shadowVal = 0;
-	usedUVs[texRes * id.y + id.x].lit = 1;
-	if (usedUVs[texRes * id.y + id.x].used == 1)
+    int uvInd = texRes * id.y + id.x;
+    usedUVs[uvInd].lit = 1;
+    if (usedUVs[uvInd].used == 1)
 	{
 		for (int i = 0; i < numLights[0]; i++)
 		{
 			float3 lightLoc = lights[i].loc;
-            float3 locMinusLight = usedUVs[texRes * id.y + id.x].worldLoc - lightLoc;
+            float3 locMinusLight = usedUVs[uvInd].worldLoc - lightLoc;
             float3 uvWPos = usedUVs[texRes * id.y + id.x].worldLoc;
             float dist = length(locMinusLight);
 			float maxDist = lights[i].range;
-			float4 lightCol = normalize(lights[i].color) * lights[i].intensity;
+			float4 lightCol = lights[i].color * lights[i].intensity;
             float3 lightVec = normalize(locMinusLight);
-			float angleBetweenLightAndLoc = dot(lightVec, usedUVs[texRes * id.y + id.x].normal);
+            float angleBetweenLightAndLoc = dot(lightVec, usedUVs[uvInd].normal);
             if (dist < maxDist && angleBetweenLightAndLoc < 0)
             {
+                if(lights[i].castShadow == 0)
+                {
+                    float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc;
+                    totalCol = lerp(totalCol, lightCol, val * val * usedUVs[texRes * id.y + id.x].lit);
+                    continue;
+                }
                 bool shadowHit = false;
                 float lightHide = 1;
-                float distFromInterToUV = 0;
                 float distFromLightToPlane = 0;
                 for (int j = 0; j < numTriangles; j++)
                 {
@@ -134,15 +144,18 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 
                     float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
 
-                    if (abs(parallelDot) >= -eps) // if they are not, then they intersect (consider adding epsilon)
+                    if (abs(parallelDot) - eps >= 0) // if they are not, then they intersect
                     {
-                        distFromLightToPlane = dot((triangles[j].p1WPos - lightLoc), triangles[j].normal) / parallelDot; //find if they intersect behind the ray origin (whatever that means?)
+                        distFromLightToPlane = dot(triangles[j].p3WPos - lightLoc, triangles[j].normal) / parallelDot;
+                        
                         if (distFromLightToPlane >= dist - eps)
                         {
                             continue;
                         }
-                        if (distFromLightToPlane >= -eps /*&& distFromLightToPlane < dist*/)
+                        if (distFromLightToPlane - eps >= 0 /*&& distFromLightToPlane < dist*/)
                         {
+                            usedUVs[uvInd].distFromLight = length(usedUVs[uvInd].worldLoc - lightLoc);
+
                             float3 inters = lightLoc + (distFromLightToPlane * lightVec);
 
                             float3 p1 = triangles[j].p1WPos;
@@ -153,8 +166,8 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                             float3 v1 = p3 - p1;
                             float3 v2 = inters - p1;
 
-                            float d00 = dot(v0, v0);
-                            float d01 = dot(v0, v1);
+                            float d00 = dot(v0, v0); 
+                            float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
                             float d11 = dot(v1, v1);
                             float d20 = dot(v2, v0);
                             float d21 = dot(v2, v1);
@@ -167,187 +180,109 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 
                             if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
                             {
-                                float newDist = length(inters - uvWPos);
-                                distFromInterToUV = max(newDist, distFromInterToUV);
+                               
+                                float distFromInterToUV = length(inters - uvWPos);
+
+                                if (usedUVs[uvInd].distFromShadowedObject != 0)
+                                    usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
+                                else
+                                    usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
+                                
+                                //if (shadowHit == false)
+                                //{
+                                //    //probably shouldn't be shaded when shadowed. Maybe use oringal texture.
+                                //    float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc ;
+                                //    totalCol = lerp(totalCol, lightCol, val * val * usedUVs[uvInd].lit);
+                                //}
                                 shadowHit = true;
                             }
                         }
                     }
                 }
-                //if(shadowHit)
-                //{
-                //    //lightHide = (distFromInterToUV / dist);
-                //    //lightHide *= lightHide * lightHide;
-                //    //float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc * lightHide;
-                //    //totalCol = lerp(totalCol, lightCol, val * val * usedUVs[texRes * id.y + id.x].lit);
-
-                //    break;
-                //}
                 if(!shadowHit)
                 {
                     float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc;
-                    totalCol = lerp(totalCol, lightCol, val * val * usedUVs[texRes * id.y + id.x].lit);
+                    totalCol = lerp(totalCol, lightCol, val * val * usedUVs[uvInd].lit);
+                    usedUVs[uvInd].distFromShadowedObject = 0;//no object for shadow
+
                 }
             }
         }
         light[id.xy] += totalCol;
-        //shad[id.xy] = shadowVal;
     }
 }
 
-
-static int kSize = 2;//should be made independent based on texture size
-
 [numthreads(8, 8, 1)]
-void BlurAndApplyShadow(uint3 id : SV_DispatchThreadID)
+void Blur(uint3 id : SV_DispatchThreadID)
 {
-    light[id.xy] = lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
-    //if (shad[id.xy].r < 0.5)
-    //{
-    //    float4 result = shad[id.xy].y;
+    //I think part of the solution is to make shadows their own texture. 
+    //but another issue is that the shadows are blurring outward, and really the light should be bleeding into the shadow.
     
-    //    for (int x = -kSize; x <= kSize; x++)
+    //what needs to happen
+    //there are unlit parts(normal map) and there are the shadows (geometry) 
+    //So maybe I have three seperate things, the regular texture, the unlit parts, and the shadows. 
+    int uvInd = texRes * id.y + id.x;
+    
+    float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
+    blurAmount = pow(blurAmount, 4);
+    //light[id.xy] += blurAmount;
+    blurAmount *= 10;
+ 
+    float4 sum = light[id.xy];
+    int samples = 60;
+    for (int i = 0; i < samples; i++)
+    {
+        float circAround = hash11(float(i * id.x * id.y));
+        float4 newVal = light[id.xy + int2(int(cos(circAround * 6.2831853) * blurAmount), int(sin(circAround * 6.2831853) * blurAmount))];
+        sum += newVal;
+    }
+    float4 result = sum / (samples + 1);
+    light[id.xy] = result;
+
+
+    //for (int i = 0; i < 1; i++)
+    //{
+    //    float4 sum = 0;
+    //    int count = 0;
+    //    for (int x = -1; x <= 1; x++)
     //    {
-    //        for (int y = -kSize; y <= kSize; y++)
+    //        for (int y = -1; y <= 1; y++)
     //        {
-    //            result += shad[id.xy + int2(x, y)] / float(pow(2 * kSize, 2));
+    //            if (x == 0 && y == 0)
+    //                continue;
+    //            int2 samplePos = id.xy + int2(x * (i + 1), y * (i + 1));
+    //            if (samplePos.x >= 0 && samplePos.x < texRes && samplePos.y >= 0 && samplePos.y < texRes)
+    //            {
+    //                sum += light[samplePos];
+    //                count += 1;
+    //            }
     //        }
     //    }
-    //    shad[id.xy] += result;
+    //    if (count > 0)
+    //    {
+    //        result = lerp(result, sum / count, 1.0 / (i + 2));
+    //    }
     //}
+    
+    //for (int x = -4; x <= 4; x++)
+    //{
+    //    for (int y = -4; y <= 4; y++)
+    //    {
+    //        result += light[id.xy + int2(x, y)] / float(pow(2 * 2 + 1, 2));
+    //    }
+    //}
+
+
+}
+
+[numthreads(8, 8, 1)]
+void Apply(uint3 id : SV_DispatchThreadID)
+{
+    light[id.xy] = lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
+    
+   
+    //light[id.xy] = float4(1, 0, 0, 1);
+
     //float4 col = [id.xy]; // * (shad[id.xy].x);
     //light[id.xy] = col;
 }
-
-/*
-// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
-#pragma kernel DynamicLight
-
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float4> Result;
-
-struct MeshTriangle
-{
-	float3 p1WPos;
-	float2 p1Uv;
-	float3 p2WPos;
-	float2 p2Uv;
-	float3 p3WPos;
-	float2 p3Uv;
-	float3 normal;
-	float3 tangent;
-	float3 binormal;
-};
-
-struct CSLight
-{
-	float3 loc;
-	float4 color;
-	float range;
-	float intensity;
-};
-
-struct usedUV
-{
-	float2 uvPos;
-	float3 worldLoc;
-	float3 normal;
-	int used;
-	float lit;
-};
-
-StructuredBuffer<MeshTriangle> triangles;
-StructuredBuffer<CSLight> lights;
-RWStructuredBuffer<usedUV> usedUVs;
-
-int numLights;
-int numTriangles;
-int texRes;
-static float eps = 0.046;
-RWTexture2D<float4> nm;
-
-/*float hash11(float p)
-{
-	p = frac(p * 0.1031);
-	p *= p + 33.33;
-	p *= p + p;
-	p = frac(p);
-	//p -= 0.5;
-	return p;
-}
-
-/*
-[numthreads(8, 8, 1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
-{
-	//Result[id.xy] = float4(0.01, 0.01, 0., 1); //ambient light
-    float a;
-    float b;
-    float c;
-    float2 curUV = float2((float) id.x / (float) texRes, (float) id.y / (float) texRes);
-    for (int i = 0; i < numTriangles; i++)
-    {
-        float2 p1 = triangles[i].p1Uv;
-        float2 p2 = triangles[i].p2Uv;
-        float2 p3 = triangles[i].p3Uv;
-
-        a = ((p2.y - p3.y) * (curUV.x - p3.x) + (p3.x - p2.x) * (curUV.y - p3.y)) / ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
-        b = ((p3.y - p1.y) * (curUV.x - p3.x) + (p1.x - p3.x) * (curUV.y - p3.y)) / ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
-        c = 1 - a - b;
-        if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
-        {
-            usedUVs[texRes * id.y + id.x].used = 1;
-            usedUVs[texRes * id.y + id.x].uvPos = id.xy;
-
-            float3 wp1 = triangles[i].p1WPos;
-            float3 wp2 = triangles[i].p2WPos;
-            float3 wp3 = triangles[i].p3WPos;
-
-            usedUVs[texRes * id.y + id.x].worldLoc = a * wp1 + b * wp2 + c * wp3;
-            nm[id.xy].g = 1 - nm[id.xy].g;
-            nm[id.xy] = nm[id.xy] * 2 - 1;
-            usedUVs[texRes * id.y + id.x].normal = triangles[i].normal * nm[id.xy].b + triangles[i].binormal * nm[id.xy].g + triangles[i].tangent * nm[id.xy].r; // 
-            usedUVs[texRes * id.y + id.x].normal = normalize(usedUVs[texRes * id.y + id.x].normal);
-            break;
-        }
-    }
-}
-
-[numthreads(8, 8, 1)]
-void DynamicLight(uint3 id : SV_DispatchThreadID)
-{
-    float4 amb = float4(0.3 / 2, 0.15 / 2, 0.15 / 2, 1);
-    Result[id.xy] = amb; //ambient light
-    float4 lightCol = 0;
-    usedUVs[texRes * id.y + id.x].lit = 1;
-    if (usedUVs[texRes * id.y + id.x].used == 1)
-    {
-        for (int i = 0; i < numLights; i++)
-        {
-            float3 lightLoc = lights[i].loc;
-            float3 lightMinusLoc = lightLoc - usedUVs[texRes * id.y + id.x].worldLoc;
-            float dist = length(lightMinusLoc);
-            float maxDist = lights[i].range;
-            float4 col = normalize(lights[i].color) * lights[i].intensity;
-            float3 lightVec = normalize(lightMinusLoc);
-            float angleBetweenLightAndLoc = dot(lightVec, usedUVs[texRes * id.y + id.x].normal);
-
-            if (dist < maxDist && angleBetweenLightAndLoc > 0)
-            {
-				//lightCol = col *angleBetweenLightAndLoc;
-                float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc;
-                lightCol = lerp(lightCol, col, val * val * usedUVs[texRes * id.y + id.x].lit);
-            }
-        }
-        Result[id.xy] += lightCol;
-    }
-}
-
-[numthreads(8, 8, 1)]
-void rayTracedLight(uint3 id : SV_DispatchThreadID)
-{
-
-}
-*/
