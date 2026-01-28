@@ -12,7 +12,10 @@ public class Shading : MonoBehaviour
     public Texture normalMap;
     //public Texture2DArray
     RenderTexture normMapTex;//normal map texture
-    RenderTexture shadowText;
+    RenderTexture bShadowText;//The actual shadows baked
+    RenderTexture bUnlitText;//the parts of objects just not lit baked
+    RenderTexture rShadowText;//The actual shadows real time
+    RenderTexture rUnlitText;//the parts of objects just not lit real time
     RenderTexture RlTLightText;//real time light texture
     RenderTexture BLightText;//baked light texture
     RenderTexture finalLightText;
@@ -90,10 +93,25 @@ public class Shading : MonoBehaviour
         RlTLightText.filterMode = FilterMode.Point;
         RlTLightText.Create();
 
-        shadowText = new RenderTexture(texRes, texRes, 4);
-        shadowText.enableRandomWrite = true;
-        shadowText.filterMode = FilterMode.Point;
-        shadowText.Create();
+        bShadowText = new RenderTexture(texRes, texRes, 4);
+        bShadowText.enableRandomWrite = true;
+        bShadowText.filterMode = FilterMode.Point;
+        bShadowText.Create();
+
+        bUnlitText = new RenderTexture(texRes, texRes, 4);
+        bUnlitText.enableRandomWrite = true;
+        bUnlitText.filterMode = FilterMode.Point;
+        bUnlitText.Create();
+
+        rShadowText = new RenderTexture(texRes, texRes, 4);
+        rShadowText.enableRandomWrite = true;
+        rShadowText.filterMode = FilterMode.Point;
+        rShadowText.Create();
+
+        rUnlitText = new RenderTexture(texRes, texRes, 4);
+        rUnlitText.enableRandomWrite = true;
+        rUnlitText.filterMode = FilterMode.Point;
+        rUnlitText.Create();
 
         normMapTex = new RenderTexture(texRes, texRes, 4);
         normMapTex.enableRandomWrite = true;
@@ -216,7 +234,6 @@ public class Shading : MonoBehaviour
         usedUVBuffer.SetData(usedUVsArr);
         Graphics.Blit(normalMap, normMapTex);
         comp.SetTexture(uvToWorldHandle, "nm", normMapTex);
-
         comp.SetBuffer(uvToWorldHandle, "triangles", triangleBuffer);
         comp.SetBuffer(uvToWorldHandle, "usedUVs", usedUVBuffer);
         comp.Dispatch(uvToWorldHandle, texRes / 8, texRes / 8, 1);
@@ -229,8 +246,7 @@ public class Shading : MonoBehaviour
         //doesn't change
         comp.SetBuffer(lightHandle, "triangles", triangleBuffer);
         comp.SetBuffer(lightHandle, "usedUVs", usedUVBuffer);
-        comp.SetTexture(lightHandle, "shad", shadowText);
-
+        comp.SetBuffer(blurHandle, "usedUVs", usedUVBuffer);
         //doesn't change
 
         //bLight
@@ -238,8 +254,6 @@ public class Shading : MonoBehaviour
         {
             lightNumBuff.SetData(new int[] { BLightNum });
             comp.SetBuffer(lightHandle, "numLights", lightNumBuff);
-
-            comp.SetTexture(lightHandle, "light", BLightText);
 
             int BLightInd = 0;
             for (int i = 0; i < lightNum; i++)
@@ -257,9 +271,17 @@ public class Shading : MonoBehaviour
 
             BLightBuffer.SetData(BLightArr);
             comp.SetBuffer(lightHandle, "lights", BLightBuffer);
+            comp.SetTexture(lightHandle, "shad", bShadowText);
+            comp.SetTexture(lightHandle, "unlit", bUnlitText);
 
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
-           
+
+            comp.SetBuffer(blurHandle, "lights", BLightBuffer);
+            comp.SetTexture(blurHandle, "unlit", bUnlitText);
+            comp.SetTexture(blurHandle, "shad", bShadowText);
+            comp.SetTexture(blurHandle, "totalResult", BLightText);
+
+            comp.Dispatch(blurHandle, texRes / 8, texRes / 8, 1);
         }
 
         //blight
@@ -269,23 +291,24 @@ public class Shading : MonoBehaviour
         {
             lightNumBuff.SetData(new int[] { RlTLightNum });
             comp.SetBuffer(lightHandle, "numLights", lightNumBuff);
-
-            comp.SetTexture(lightHandle, "light", RlTLightText);
+            comp.SetTexture(lightHandle, "shad", rShadowText);
+            comp.SetTexture(lightHandle, "unlit", rUnlitText);
             comp.SetBuffer(lightHandle, "lights", RlTLightBuffer);
-        }
 
-        comp.SetTexture(applyHandle, "RlTLight", RlTLightText);
-        comp.SetTexture(applyHandle, "BLight", BLightText);
-        comp.SetTexture(applyHandle, "light", finalLightText);
+            comp.SetBuffer(blurHandle, "lights", RlTLightBuffer);
+            comp.SetTexture(blurHandle, "unlit", rUnlitText);
+            comp.SetTexture(blurHandle, "shad", rShadowText);
+            comp.SetTexture(blurHandle, "totalResult", RlTLightText);
+        }
         //RlTLight
 
-        comp.SetBuffer(blurHandle, "usedUVs", usedUVBuffer);
-        comp.SetTexture(blurHandle, "light", finalLightText);
+        //finalCombine
+        comp.SetTexture(applyHandle, "RlTLight", RlTLightText);
+        comp.SetTexture(applyHandle, "BLight", BLightText);
+        comp.SetTexture(applyHandle, "totalResult", finalLightText);
 
-        comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);//apply for baked light, incase there is no real time light
-        //might want to consider blurring rltLight and Baked seperately then combinging, otherwise you are blurring the baked light every frame
-        if (BLightNum != 0)
-            comp.Dispatch(blurHandle, texRes / 8, texRes / 8, 1);
+        if(RlTLightNum == 0)
+            comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);//apply for baked light, incase there is no real time light
     }
 
     // Update is called once per frame
@@ -312,8 +335,8 @@ public class Shading : MonoBehaviour
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
 
         }
-        comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);
         comp.Dispatch(blurHandle, texRes / 8, texRes / 8, 1);
+        comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);
 
 
         //uint x;

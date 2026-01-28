@@ -44,12 +44,13 @@ RWStructuredBuffer<usedUV> usedUVs;
 StructuredBuffer<int> numLights;
 
 
-RWTexture2D<float4> light; //finalResult
+RWTexture2D<float4> totalResult; //finalResult of a dispatch (can be the actual final result, or real time lighting, or baked lighting depending on usage) 
 
-RWTexture2D<float4> RlTLight; //real time light texture
-RWTexture2D<float4> BLight; //baked light texture
-RWTexture2D<float4> shad;
-RWTexture2D<float4> nm;
+RWTexture2D<float4> RlTLight; //real time light texture used for combingin in final apply
+RWTexture2D<float4> BLight; //baked light texture used for combining in final apply
+RWTexture2D<float4> shad; //the areas that get shaded(from geometry)
+RWTexture2D<float4> unlit; //areas that dont get lit
+RWTexture2D<float4> nm; //normal map
 
 //int numLights;
 int numTriangles;
@@ -109,9 +110,9 @@ void uvToWorld (uint3 id : SV_DispatchThreadID)
 void DynamicLight(uint3 id : SV_DispatchThreadID)
 {
     float4 amb = 0; //float4(0.3/2, 0.15/2, 0.15/2, 1);
-    light[id.xy] = amb; //ambient light
-    float4 totalCol = 0;
-    float4 shadowVal = 0;
+    //totalResult[id.xy] = amb; //ambient light
+    float4 threadUnlit = 0;
+    float4 threadShad = 0;
     int uvInd = texRes * id.y + id.x;
     usedUVs[uvInd].lit = 1;
     if (usedUVs[uvInd].used == 1)
@@ -123,7 +124,6 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
             float3 uvWPos = usedUVs[texRes * id.y + id.x].worldLoc;
             float dist = length(locMinusLight);
             float maxDist = lights[i].range;
-            float4 lightCol = lights[i].color * lights[i].intensity;
             float3 lightVec = normalize(locMinusLight);
             float angleBetweenLightAndLoc = dot(lightVec, usedUVs[uvInd].normal);
             if (dist < maxDist && angleBetweenLightAndLoc < 0)
@@ -131,85 +131,88 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                 if (lights[i].castShadow == 0)
                 {
                     float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc;
-                    totalCol = lerp(totalCol, lightCol, val * val * usedUVs[texRes * id.y + id.x].lit);
+                    threadUnlit = val * val * usedUVs[texRes * id.y + id.x].lit;
                     continue;
                 }
                 bool shadowHit = false;
                 float lightHide = 1;
                 float distFromLightToPlane = 0;
-                if (lights[i].castShadow == 1)
+ 
+                for (int j = 0; j < numTriangles; j++)
                 {
-                    for (int j = 0; j < numTriangles; j++)
+                //float3 colliderProjection = triangles[i].p1WPos - uvWPos;
+
+                    float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
+
+                    if (abs(parallelDot) >= 0) // if they are not, then they intersect
                     {
-                    //float3 colliderProjection = triangles[i].p1WPos - uvWPos;
-
-                        float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
-
-                        if (abs(parallelDot) - eps >= 0) // if they are not, then they intersect
-                        {
-                            distFromLightToPlane = dot(triangles[j].p3WPos - lightLoc, triangles[j].normal) / parallelDot;
+                        distFromLightToPlane = dot(triangles[j].p3WPos - lightLoc, triangles[j].normal) / parallelDot;
                         
-                            if (distFromLightToPlane >= dist - eps)
+                        if (distFromLightToPlane >= dist - eps)
+                        {
+                            continue;
+                        }
+                        if (distFromLightToPlane - eps >= 0 /*&& distFromLightToPlane < dist*/)
+                        {
+                            usedUVs[uvInd].distFromLight = length(usedUVs[uvInd].worldLoc - lightLoc);
+
+                            float3 inters = lightLoc + (distFromLightToPlane * lightVec);
+
+                            float3 p1 = triangles[j].p1WPos;
+                            float3 p2 = triangles[j].p2WPos;
+                            float3 p3 = triangles[j].p3WPos;
+
+                            float3 v0 = p2 - p1;
+                            float3 v1 = p3 - p1;
+                            float3 v2 = inters - p1;
+
+                            float d00 = dot(v0, v0);
+                            float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
+                            float d11 = dot(v1, v1);
+                            float d20 = dot(v2, v0);
+                            float d21 = dot(v2, v1);
+
+                            float denom = d00 * d11 - d01 * d01;
+
+                            float a = (d11 * d20 - d01 * d21) / denom;
+                            float b = (d00 * d21 - d01 * d20) / denom;
+                            float c = 1.0f - a - b;
+
+                            if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
                             {
-                                continue;
-                            }
-                            if (distFromLightToPlane - eps >= 0 /*&& distFromLightToPlane < dist*/)
-                            {
-                                usedUVs[uvInd].distFromLight = length(usedUVs[uvInd].worldLoc - lightLoc);
-
-                                float3 inters = lightLoc + (distFromLightToPlane * lightVec);
-
-                                float3 p1 = triangles[j].p1WPos;
-                                float3 p2 = triangles[j].p2WPos;
-                                float3 p3 = triangles[j].p3WPos;
-
-                                float3 v0 = p2 - p1;
-                                float3 v1 = p3 - p1;
-                                float3 v2 = inters - p1;
-
-                                float d00 = dot(v0, v0);
-                                float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
-                                float d11 = dot(v1, v1);
-                                float d20 = dot(v2, v0);
-                                float d21 = dot(v2, v1);
-
-                                float denom = d00 * d11 - d01 * d01;
-
-                                float a = (d11 * d20 - d01 * d21) / denom;
-                                float b = (d00 * d21 - d01 * d20) / denom;
-                                float c = 1.0f - a - b;
-
-                                if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
-                                {
                                
-                                    float distFromInterToUV = length(inters - uvWPos);
+                                float distFromInterToUV = length(inters - uvWPos);
 
-                                    if (usedUVs[uvInd].distFromShadowedObject != 0)
-                                        usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
-                                    else
-                                        usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
+                                if (usedUVs[uvInd].distFromShadowedObject != 0)
+                                    usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
+                                else
+                                    usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
                                 
-                                //if (shadowHit == false)
-                                //{
-                                //    //probably shouldn't be shaded when shadowed. Maybe use oringal texture.
-                                //    float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc ;
-                                //    totalCol = lerp(totalCol, lightCol, val * val * usedUVs[uvInd].lit);
-                                //}
-                                    shadowHit = true;
-                                }
+                            //if (shadowHit == false)
+                            //{
+                            //    //probably shouldn't be shaded when shadowed. Maybe use oringal texture.
+                            //    float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc ;
+                            //    totalCol = lerp(totalCol, lightCol, val * val * usedUVs[uvInd].lit);
+                            //}
+                                shadowHit = true;
                             }
                         }
                     }
-                    if (!shadowHit)
-                    {
-                        float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc;
-                        totalCol = lerp(totalCol, lightCol, val * val * usedUVs[uvInd].lit);
-                        usedUVs[uvInd].distFromShadowedObject = 0; //no object for shadow
-
-                    }
                 }
+                if (!shadowHit)
+                {
+                    usedUVs[uvInd].distFromShadowedObject = 0; //no object for shadow
+                    threadShad = 1;
+                }
+                float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLoc;
+                threadUnlit = val * val * usedUVs[uvInd].lit;
             }
-            light[id.xy] += totalCol;
+            else
+            {
+                threadUnlit = 0;
+            }
+            unlit[id.xy] += threadUnlit;
+            shad[id.xy] += threadShad;
         }
     }
 }
@@ -217,6 +220,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void Blur(uint3 id : SV_DispatchThreadID)
 {
+   
     //I think part of the solution is to make shadows their own texture. 
     //but another issue is that the shadows are blurring outward, and really the light should be bleeding into the shadow.
     
@@ -227,21 +231,25 @@ void Blur(uint3 id : SV_DispatchThreadID)
     
     float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
     blurAmount = pow(blurAmount, 4);
-    //light[id.xy] += blurAmount;
-    blurAmount *= 10;
- 
-    float4 sum = light[id.xy];
-    int samples = 60;
-    for (int i = 0; i < samples; i++)
+    //totalResult[id.xy] += blurAmount;
+    blurAmount *= 60;
+    //blurAmount = 4;
+    float4 sum = shad[id.xy];
+    float addVal = 0.025;
+    for (int i = 0; i < blurAmount; i++)
     {
-        float circAround = hash11(float(i * id.x * id.y));
-        float4 newVal = light[id.xy + int2(int(cos(circAround * 6.2831853) * blurAmount), int(sin(circAround * 6.2831853) * blurAmount))];
-        sum += newVal;
+        if (sum.r < 1.0 - addVal)
+            sum += addVal;
     }
-    float4 result = sum / (samples + 1);
-    light[id.xy] = result;
+    shad[id.xy] = sum;
+    
+    float4 lightCol = lights[0].color * lights[0].intensity;
 
-
+    float4 unlitAndShad = unlit[id.xy] * shad[id.xy];
+    //unlitAndShad = 1 - unlitAndShad;
+    totalResult[id.xy] = unlitAndShad * lightCol; //shad[id.xy];
+    shad[id.xy] = float4(0, 0, 0, 0);
+    unlit[id.xy] = float4(0, 0, 0, 0);
     //for (int i = 0; i < 1; i++)
     //{
     //    float4 sum = 0;
@@ -255,7 +263,7 @@ void Blur(uint3 id : SV_DispatchThreadID)
     //            int2 samplePos = id.xy + int2(x * (i + 1), y * (i + 1));
     //            if (samplePos.x >= 0 && samplePos.x < texRes && samplePos.y >= 0 && samplePos.y < texRes)
     //            {
-    //                sum += light[samplePos];
+    //                sum += totalResult[samplePos];
     //                count += 1;
     //            }
     //        }
@@ -270,7 +278,7 @@ void Blur(uint3 id : SV_DispatchThreadID)
     //{
     //    for (int y = -4; y <= 4; y++)
     //    {
-    //        result += light[id.xy + int2(x, y)] / float(pow(2 * 2 + 1, 2));
+    //        result += totalResult[id.xy + int2(x, y)] / float(pow(2 * 2 + 1, 2));
     //    }
     //}
 
@@ -280,11 +288,13 @@ void Blur(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void Apply(uint3 id : SV_DispatchThreadID)
 {
-    light[id.xy] = lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
+    float4 totCol = RlTLight[id.xy] + BLight[id.xy];
+    totCol = saturate(totCol);
+    totalResult[id.xy] = totCol;//lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
     
    
-    //light[id.xy] = float4(1, 0, 0, 1);
+    //totalResult[id.xy] = float4(1, 0, 0, 1);
 
     //float4 col = [id.xy]; // * (shad[id.xy].x);
-    //light[id.xy] = col;
+    //totalResult[id.xy] = col;
 }

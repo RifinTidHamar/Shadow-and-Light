@@ -49,7 +49,7 @@ Shader "Unlit/DoubleTex"
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-            col *= tex2D(_ShadowTex, i.shadUV);// *0.5 + 0.5;
+                col = tex2D(_ShadowTex, i.shadUV);// *0.5 + 0.5;
                 return col;
             }
             ENDCG
