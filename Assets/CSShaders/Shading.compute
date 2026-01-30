@@ -113,14 +113,15 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 {
     float4 amb = 0; //float4(0.3/2, 0.15/2, 0.15/2, 1);
     //totalResult[id.xy] = amb; //ambient light
-    float4 threadUnlit = 0;
-    float4 threadShad = 0;
+
     int uvInd = texRes * id.y + id.x;
     usedUVs[uvInd].lit = 1;
     if (usedUVs[uvInd].used == 1)
     {
         for (int i = 0; i < numLights[0]; i++)
         {
+            float4 threadUnlit = 0;
+            float4 threadShad = 0;
             float3 lightLoc = lights[i].loc;
             float3 locMinusLight = usedUVs[uvInd].worldLoc - lightLoc;
             float3 uvWPos = usedUVs[texRes * id.y + id.x].worldLoc;
@@ -139,15 +140,8 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                         threadUnlit = 1 - (val * val * usedUVs[uvInd].lit);
                         continue;
                     }
-                    else
-                    {
-                        threadUnlit = 1;
-                        continue;
-                    }
                 }
                 bool shadowHit = false;
-                threadUnlit = 0;
-                threadShad = 0;
                 float distFromLightToPlane = 0;
  
                 for (int j = 0; j < numTriangles; j++)
@@ -196,7 +190,20 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                                     usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
                                
                                 shadowHit = true;
-                                threadShad = 1;
+                                float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
+                                blurAmount = pow(blurAmount, 4);
+                                //totalResult[id.xy] += blurAmount;
+                                blurAmount *= 60;
+                                //blurAmount = clamp(blurAmount, 0, 20);
+                                //blurAmount = 4;
+                                float4 sum = 1;
+                                float addVal = (float) 2 / 60;
+                                for (int i = 0; i < blurAmount; i++)
+                                {
+                                    if (sum.r > 0 + addVal)
+                                        sum -= addVal;
+                                }
+                                threadShad = sum;
 
                             }
                         }
@@ -207,16 +214,10 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                 if (angleBetweenLightAndLocWNormalMap < 0)
                 {
                     float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLocWNormalMap;
-                    threadUnlit = 1 - (val * val * usedUVs[uvInd].lit);
+                    threadUnlit = (1 - threadShad) * val * val * usedUVs[uvInd].lit * lights[i].color * lights[i].intensity;
                 }
-                else
-                    threadUnlit = 1;
             }
-            else
-            {
-                threadUnlit = 1;
-                threadShad = 1;
-            }
+      
             unlit[id.xy] += threadUnlit;
             unlit[id.xy] = clamp(unlit[id.xy], 0, 1);
             shad[id.xy] += threadShad;
@@ -232,25 +233,11 @@ void Blur(uint3 id : SV_DispatchThreadID)
    //make baked work
     int uvInd = texRes * id.y + id.x;
     
-    //float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
-    //blurAmount = pow(blurAmount, 4);
-    ////totalResult[id.xy] += blurAmount;
-    //blurAmount *= 60;
-    ////blurAmount = 4;
-    //float4 sum = shad[id.xy];
-    //float addVal = 0.025;
-    //for (int i = 0; i < blurAmount; i++)
-    //{
-    //    if (sum.r < 1.0 - addVal)
-    //        sum += addVal;
-    //}
-    //shad[id.xy] = sum;
-    
     //float4 lightCol = lights[0].color * lights[0].intensity;
 
-    float4 unlitAndShad = unlit[id.xy] * shad[id.xy];
+    float4 unlitAndShad = unlit[id.xy];
     //unlitAndShad = 1 - unlitAndShad;
-    totalResult[id.xy] = unlit[id.xy]; // * lightCol; //shad[id.xy];
+    totalResult[id.xy] = unlitAndShad; //unlit[id.xy]; // * lightCol; //shad[id.xy];
     shad[id.xy] = float4(0, 0, 0, 0);
     unlit[id.xy] = float4(0, 0, 0, 0);
 }
