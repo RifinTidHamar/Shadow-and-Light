@@ -8,5 +8,6 @@ public class LightData : MonoBehaviour
     public float range;
     public float intensity;
     public bool baked;
-    public bool castShadow;
+    public enum shadowType { None, Hard, DynamicSoft }
+    public shadowType shading;
 }

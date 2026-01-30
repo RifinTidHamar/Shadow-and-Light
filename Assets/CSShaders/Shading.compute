@@ -1,7 +1,6 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel uvToWorld
 #pragma kernel DynamicLight
-#pragma kernel Blur
 #pragma kernel Apply
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -21,7 +20,7 @@ struct MeshTriangle
 
 struct CSLight
 {
-    int castShadow;
+    int shadowType;
 	float3 loc;
 	float4 color;
 	float range;
@@ -49,8 +48,6 @@ RWTexture2D<float4> totalResult; //finalResult of a dispatch (can be the actual 
 
 RWTexture2D<float4> RlTLight; //real time light texture used for combingin in final apply
 RWTexture2D<float4> BLight; //baked light texture used for combining in final apply
-RWTexture2D<float4> shad; //the areas that get shaded(from geometry)
-RWTexture2D<float4> unlit; //areas that dont get lit
 RWTexture2D<float4> nm; //normal map
 
 //int numLights;
@@ -132,79 +129,75 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
             float angleBetweenLightAndLocGeo = dot(lightVec, usedUVs[uvInd].geoNormal);
             if (dist < maxDist && angleBetweenLightAndLocGeo < 0)
             {
-                if (lights[i].castShadow == 0)
-                {
-                    if (angleBetweenLightAndLocWNormalMap < 0)
-                    {
-                        float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLocWNormalMap;
-                        threadUnlit = 1 - (val * val * usedUVs[uvInd].lit);
-                        continue;
-                    }
-                }
                 bool shadowHit = false;
                 float distFromLightToPlane = 0;
- 
-                for (int j = 0; j < numTriangles; j++)
+                if (lights[i].shadowType > 0)
                 {
-                    float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
-
-                    if (abs(parallelDot) >= 0) // if they are not, then they intersect
+                    for (int j = 0; j < numTriangles; j++)
                     {
-                        distFromLightToPlane = dot(triangles[j].p3WPos - lightLoc, triangles[j].normal) / parallelDot;
-                        
-                        if (distFromLightToPlane >= dist - eps)
-                            continue;
-                        if (distFromLightToPlane - eps >= 0 /*&& distFromLightToPlane < dist*/)
+                        float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
+
+                        if (abs(parallelDot) >= 0) // if they are not, then they intersect
                         {
-                            usedUVs[uvInd].distFromLight = length(usedUVs[uvInd].worldLoc - lightLoc);
-
-                            float3 inters = lightLoc + (distFromLightToPlane * lightVec);
-
-                            float3 p1 = triangles[j].p1WPos;
-                            float3 p2 = triangles[j].p2WPos;
-                            float3 p3 = triangles[j].p3WPos;
-
-                            float3 v0 = p2 - p1;
-                            float3 v1 = p3 - p1;
-                            float3 v2 = inters - p1;
-
-                            float d00 = dot(v0, v0);
-                            float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
-                            float d11 = dot(v1, v1);
-                            float d20 = dot(v2, v0);
-                            float d21 = dot(v2, v1);
-
-                            float denom = d00 * d11 - d01 * d01;
-
-                            float a = (d11 * d20 - d01 * d21) / denom;
-                            float b = (d00 * d21 - d01 * d20) / denom;
-                            float c = 1.0f - a - b;
-
-                            if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
+                            distFromLightToPlane = dot(triangles[j].p3WPos - lightLoc, triangles[j].normal) / parallelDot;
+                        
+                            if (distFromLightToPlane >= dist - eps)
+                                continue;
+                            if (distFromLightToPlane - eps >= 0 /*&& distFromLightToPlane < dist*/)
                             {
-                                float distFromInterToUV = length(inters - uvWPos);
+                                usedUVs[uvInd].distFromLight = length(usedUVs[uvInd].worldLoc - lightLoc);
 
-                                if (usedUVs[uvInd].distFromShadowedObject != 0)
-                                    usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
-                                else
-                                    usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
-                               
-                                shadowHit = true;
-                                float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
-                                blurAmount = pow(blurAmount, 4);
-                                //totalResult[id.xy] += blurAmount;
-                                blurAmount *= 60;
-                                //blurAmount = clamp(blurAmount, 0, 20);
-                                //blurAmount = 4;
-                                float4 sum = 1;
-                                float addVal = (float) 2 / 60;
-                                for (int i = 0; i < blurAmount; i++)
+                                float3 inters = lightLoc + (distFromLightToPlane * lightVec);
+
+                                float3 p1 = triangles[j].p1WPos;
+                                float3 p2 = triangles[j].p2WPos;
+                                float3 p3 = triangles[j].p3WPos;
+
+                                float3 v0 = p2 - p1;
+                                float3 v1 = p3 - p1;
+                                float3 v2 = inters - p1;
+
+                                float d00 = dot(v0, v0);
+                                float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
+                                float d11 = dot(v1, v1);
+                                float d20 = dot(v2, v0);
+                                float d21 = dot(v2, v1);
+
+                                float denom = d00 * d11 - d01 * d01;
+
+                                float a = (d11 * d20 - d01 * d21) / denom;
+                                float b = (d00 * d21 - d01 * d20) / denom;
+                                float c = 1.0f - a - b;
+
+                                if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
                                 {
-                                    if (sum.r > 0 + addVal)
-                                        sum -= addVal;
-                                }
-                                threadShad = sum;
+                                    float distFromInterToUV = length(inters - uvWPos);
 
+                                    if (usedUVs[uvInd].distFromShadowedObject != 0)
+                                        usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
+                                    else
+                                        usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
+                               
+                                    shadowHit = true;
+                                    threadShad = 1;
+                                    if(lights[i].shadowType == 2)
+                                    {
+                                        float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
+                                        blurAmount = pow(blurAmount, 4);
+                                        //totalResult[id.xy] += blurAmount;
+                                        blurAmount *= 60;
+                                        //blurAmount = clamp(blurAmount, 0, 20);
+                                        //blurAmount = 4;
+                                        float4 sum = 1;
+                                        float addVal = (float) 2 / 60;
+                                        for (int i = 0; i < blurAmount; i++)
+                                        {
+                                            if (sum.r > 0 + addVal)
+                                                sum -= addVal;
+                                        }
+                                        threadShad = sum;
+                                    }
+                                }
                             }
                         }
                     }
@@ -218,28 +211,10 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                 }
             }
       
-            unlit[id.xy] += threadUnlit;
-            unlit[id.xy] = clamp(unlit[id.xy], 0, 1);
-            shad[id.xy] += threadShad;
-            shad[id.xy] = clamp(shad[id.xy], 0, 1);
+            totalResult[id.xy] += threadUnlit;
+            //totalResult[id.xy] = clamp(totalResult[id.xy], 0, 1);
         }
     }
-}
-
-[numthreads(8, 8, 1)]
-void Blur(uint3 id : SV_DispatchThreadID)
-{
-   //to do:
-   //make baked work
-    int uvInd = texRes * id.y + id.x;
-    
-    //float4 lightCol = lights[0].color * lights[0].intensity;
-
-    float4 unlitAndShad = unlit[id.xy];
-    //unlitAndShad = 1 - unlitAndShad;
-    totalResult[id.xy] = unlitAndShad; //unlit[id.xy]; // * lightCol; //shad[id.xy];
-    shad[id.xy] = float4(0, 0, 0, 0);
-    unlit[id.xy] = float4(0, 0, 0, 0);
 }
 
 [numthreads(8, 8, 1)]
@@ -248,7 +223,7 @@ void Apply(uint3 id : SV_DispatchThreadID)
     float4 totCol = RlTLight[id.xy] + BLight[id.xy];
     totCol = saturate(totCol);
     totalResult[id.xy] = totCol;//lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
-    
+    RlTLight[id.xy] = 0;
    
     //totalResult[id.xy] = float4(1, 0, 0, 1);
 

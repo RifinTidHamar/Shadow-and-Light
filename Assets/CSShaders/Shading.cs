@@ -12,10 +12,6 @@ public class Shading : MonoBehaviour
     public Texture normalMap;
     //public Texture2DArray
     RenderTexture normMapTex;//normal map texture
-    RenderTexture bShadowText;//The actual shadows baked
-    RenderTexture bUnlitText;//the parts of objects just not lit baked
-    RenderTexture rShadowText;//The actual shadows real time
-    RenderTexture rUnlitText;//the parts of objects just not lit real time
     RenderTexture RlTLightText;//real time light texture
     RenderTexture BLightText;//baked light texture
     RenderTexture finalLightText;
@@ -43,7 +39,7 @@ public class Shading : MonoBehaviour
 
     struct CSLight
     {
-        public int castShadow;
+        public int shadowType;//0 = no shadow, 1 = hard shadow, 2 = soft shadow
         public Vector3 loc;
         public Vector4 color;
         public float range;
@@ -94,26 +90,6 @@ public class Shading : MonoBehaviour
         RlTLightText.filterMode = FilterMode.Point;
         RlTLightText.Create();
 
-        bShadowText = new RenderTexture(texRes, texRes, 4);
-        bShadowText.enableRandomWrite = true;
-        bShadowText.filterMode = FilterMode.Point;
-        bShadowText.Create();
-
-        bUnlitText = new RenderTexture(texRes, texRes, 4);
-        bUnlitText.enableRandomWrite = true;
-        bUnlitText.filterMode = FilterMode.Point;
-        bUnlitText.Create();
-
-        rShadowText = new RenderTexture(texRes, texRes, 4);
-        rShadowText.enableRandomWrite = true;
-        rShadowText.filterMode = FilterMode.Point;
-        rShadowText.Create();
-
-        rUnlitText = new RenderTexture(texRes, texRes, 4);
-        rUnlitText.enableRandomWrite = true;
-        rUnlitText.filterMode = FilterMode.Point;
-        rUnlitText.Create();
-
         normMapTex = new RenderTexture(texRes, texRes, 4);
         normMapTex.enableRandomWrite = true;
         normMapTex.filterMode = FilterMode.Point;
@@ -129,7 +105,6 @@ public class Shading : MonoBehaviour
 
         uvToWorldHandle = comp.FindKernel("uvToWorld");
         lightHandle = comp.FindKernel("DynamicLight");
-        blurHandle = comp.FindKernel("Blur");
         applyHandle = comp.FindKernel("Apply");
 
         populateArray();
@@ -262,7 +237,7 @@ public class Shading : MonoBehaviour
             {
                 if (lightData[i].baked == true)
                 {
-                    BLightArr[BLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
+                    BLightArr[BLightInd].shadowType = (int)lightData[i].shading;
                     BLightArr[BLightInd].loc = lightObject[i].gameObject.transform.position;
                     BLightArr[BLightInd].color = lightData[i].color;
                     BLightArr[BLightInd].range = lightData[i].range;
@@ -273,17 +248,9 @@ public class Shading : MonoBehaviour
 
             BLightBuffer.SetData(BLightArr);
             comp.SetBuffer(lightHandle, "lights", BLightBuffer);
-            comp.SetTexture(lightHandle, "shad", bShadowText);
-            comp.SetTexture(lightHandle, "unlit", bUnlitText);
+            comp.SetTexture(lightHandle, "totalResult", BLightText);
 
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
-
-            comp.SetBuffer(blurHandle, "lights", BLightBuffer);
-            comp.SetTexture(blurHandle, "unlit", bUnlitText);
-            comp.SetTexture(blurHandle, "shad", bShadowText);
-            comp.SetTexture(blurHandle, "totalResult", BLightText);
-
-            comp.Dispatch(blurHandle, texRes / 8, texRes / 8, 1);
         }
 
         //blight
@@ -293,14 +260,8 @@ public class Shading : MonoBehaviour
         {
             lightNumBuff.SetData(new int[] { RlTLightNum });
             comp.SetBuffer(lightHandle, "numLights", lightNumBuff);
-            comp.SetTexture(lightHandle, "shad", rShadowText);
-            comp.SetTexture(lightHandle, "unlit", rUnlitText);
+            comp.SetTexture(lightHandle, "totalResult", RlTLightText);
             comp.SetBuffer(lightHandle, "lights", RlTLightBuffer);
-
-            comp.SetBuffer(blurHandle, "lights", RlTLightBuffer);
-            comp.SetTexture(blurHandle, "unlit", rUnlitText);
-            comp.SetTexture(blurHandle, "shad", rShadowText);
-            comp.SetTexture(blurHandle, "totalResult", RlTLightText);
         }
         //RlTLight
 
@@ -323,12 +284,11 @@ public class Shading : MonoBehaviour
             {
                 if (lightData[i].baked == false)
                 {
-                    RlTLightArr[RlTLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
+                    RlTLightArr[RlTLightInd].shadowType = (int)lightData[i].shading;
                     RlTLightArr[RlTLightInd].loc = lightObject[i].gameObject.transform.position;
                     RlTLightArr[RlTLightInd].color = lightData[i].color;
                     RlTLightArr[RlTLightInd].range = lightData[i].range;
                     RlTLightArr[RlTLightInd].intensity = lightData[i].intensity;
-                    RlTLightArr[RlTLightInd].castShadow = lightData[i].castShadow ? 1 : 0;
                     RlTLightInd++;
                 }
             }
@@ -337,7 +297,6 @@ public class Shading : MonoBehaviour
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
 
         }
-        comp.Dispatch(blurHandle, texRes / 8, texRes / 8, 1);
         comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);
 
 
