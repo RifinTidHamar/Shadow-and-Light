@@ -1,5 +1,6 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class Shading : MonoBehaviour
@@ -44,11 +45,13 @@ public class Shading : MonoBehaviour
         public Vector4 color;
         public float range;
         public float intensity;
+        public float blurAmount;
+        public float blurPower;
     }
 
     struct usedUV
     {
-        public float distFromShadowedObject;
+        public float distInterToLight;
         public float distFromLight;
         public Vector3 worldLoc;
         public Vector3 normal;
@@ -71,7 +74,7 @@ public class Shading : MonoBehaviour
     int BLightNum;
     int usedUVNum;// = texRes * texRes;
     int meshTriangleSize = sizeof(float) * 18 + sizeof(float) * 6;
-    int lightSize = sizeof(int) * 1 + sizeof(float) * 9;
+    int lightSize = sizeof(int) * 1 + sizeof(float) * 11;
     int usedUVSize = sizeof(float) * 12 + sizeof(int) * 1;
     GameObject[] lightObject;
     LightData[] lightData;
@@ -175,7 +178,7 @@ public class Shading : MonoBehaviour
         usedUVsArr = new usedUV[usedUVNum];
         for(int i = 0; i < usedUVNum; i++)
         {
-            usedUVsArr[i].distFromShadowedObject = 0;
+            usedUVsArr[i].distInterToLight = 0;
             usedUVsArr[i].distFromLight = 0;
             usedUVsArr[i].worldLoc = new Vector3(0, 0, 0);
             //usedUVsArr[i].uvPos = new Vector2(0, 0);
@@ -242,6 +245,8 @@ public class Shading : MonoBehaviour
                     BLightArr[BLightInd].color = lightData[i].color;
                     BLightArr[BLightInd].range = lightData[i].range;
                     BLightArr[BLightInd].intensity = lightData[i].intensity;
+                    BLightArr[BLightInd].blurAmount = lightData[i].blurAmount;  
+                    BLightArr[BLightInd].blurPower = lightData[i].blurPower;
                     BLightInd++;
                 }
             }
@@ -289,6 +294,8 @@ public class Shading : MonoBehaviour
                     RlTLightArr[RlTLightInd].color = lightData[i].color;
                     RlTLightArr[RlTLightInd].range = lightData[i].range;
                     RlTLightArr[RlTLightInd].intensity = lightData[i].intensity;
+                    RlTLightArr[RlTLightInd].blurAmount = lightData[i].blurAmount;
+                    RlTLightArr[RlTLightInd].blurPower = lightData[i].blurPower;    
                     RlTLightInd++;
                 }
             }
@@ -316,3 +323,6 @@ public class Shading : MonoBehaviour
         usedUVBuffer.Release();
     }
 }
+
+
+

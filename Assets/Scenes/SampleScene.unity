@@ -695,7 +695,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &110046767
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1010,118 +1012,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 179005383}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1001 &189277296
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 29.744
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 29.744
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 29.744
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -7511558181221131132, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 1eec4bc9b5902b744b408a0614b9513d, type: 2}
-    - target: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_Name
-      value: shadowTestModel
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 189277299}
-  m_SourcePrefab: {fileID: 100100000, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
---- !u!1 &189277297 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-  m_PrefabInstance: {fileID: 189277296}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &189277298 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-  m_PrefabInstance: {fileID: 189277296}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &189277299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 189277297}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 056c9d90afdf5b74c8f41ef5730d7687, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  comp: {fileID: 7200000, guid: 2b56a617f670d1347ac34c82f58df6ae, type: 3}
-  texRes: 256
-  shadeMat: {fileID: 2100000, guid: 1eec4bc9b5902b744b408a0614b9513d, type: 2}
-  mesh: {fileID: -462981019419857548, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
-  meshTransform: {fileID: 189277298}
-  normalMap: {fileID: 2800000, guid: 760e5518650acde4eb26b61fe3ff5b87, type: 3}
 --- !u!1 &250161811
 GameObject:
   m_ObjectHideFlags: 0
@@ -1520,7 +1410,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &303853927
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2393,7 +2285,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &471228570
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2759,7 +2653,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &509804275
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3139,7 +3035,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!114 &525116895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3155,6 +3053,34 @@ MonoBehaviour:
   fireLight: {fileID: 525116894}
   intRange: 0.1
   ranRange: 0.5
+--- !u!1 &564339505 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+  m_PrefabInstance: {fileID: 1485164305}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &564339506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 564339505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 056c9d90afdf5b74c8f41ef5730d7687, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  comp: {fileID: 7200000, guid: 2b56a617f670d1347ac34c82f58df6ae, type: 3}
+  texRes: 256
+  shadeMat: {fileID: 2100000, guid: 1eec4bc9b5902b744b408a0614b9513d, type: 2}
+  mesh: {fileID: -462981019419857548, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+  meshTransform: {fileID: 564339509}
+  normalMap: {fileID: 2800000, guid: fa32fa6ee42c2744a9e3d0cec5f619c5, type: 3}
+--- !u!4 &564339509 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+  m_PrefabInstance: {fileID: 1485164305}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &579441516
 GameObject:
   m_ObjectHideFlags: 0
@@ -3206,7 +3132,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &579441519
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3323,7 +3251,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &585686716
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3878,7 +3808,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &695782658
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3995,7 +3927,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &721448907
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4112,7 +4046,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &724038801
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4618,7 +4554,7 @@ MonoBehaviour:
   shadeMat: {fileID: 2100000, guid: 1e3c26a391170694ba613c632525d1bc, type: 2}
   mesh: {fileID: 6864364205052522755, guid: d7404d483c4dfd94f8860c9fc9c7cfd3, type: 3}
   meshTransform: {fileID: 821791405}
-  normalMap: {fileID: 2800000, guid: 760e5518650acde4eb26b61fe3ff5b87, type: 3}
+  normalMap: {fileID: 2800000, guid: dd4c15f5db9739342a15090fb1ec4636, type: 3}
 --- !u!1 &827153780
 GameObject:
   m_ObjectHideFlags: 0
@@ -4685,7 +4621,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &827153784
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4885,7 +4823,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &865213452
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5085,7 +5025,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &881679138
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5270,7 +5212,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &895270091
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5649,7 +5593,7 @@ Transform:
   m_GameObject: {fileID: 960437516}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.18, y: 3.55, z: -1.42}
+  m_LocalPosition: {x: 0, y: 18.08, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5683,10 +5627,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 1, g: 0.3254902, b: 0, a: 1}
-  range: 70
+  range: 700
   intensity: 1.5
-  baked: 1
-  castShadow: 0
+  baked: 0
+  shading: 2
+  blurAmount: 60
+  blurPower: 3.9
 --- !u!23 &960437520
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5694,7 +5640,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 960437516}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -5871,7 +5817,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1025427103
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6177,7 +6125,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1065061640
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6479,7 +6429,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1092123719
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6694,7 +6646,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1173077421
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7272,7 +7226,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1249259505
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7389,7 +7345,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1254036987
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7491,7 +7449,9 @@ MonoBehaviour:
   range: 60
   intensity: 3
   baked: 0
-  castShadow: 0
+  shading: 0
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1281951526
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7608,7 +7568,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1283211055
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7725,7 +7687,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1284545537
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7842,7 +7806,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1300356835
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8291,7 +8257,9 @@ MonoBehaviour:
   range: 230.6
   intensity: 1.5
   baked: 0
-  castShadow: 1
+  shading: 0
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1393044404
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8351,7 +8319,7 @@ Transform:
   m_GameObject: {fileID: 1393044401}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.6, y: 13.71, z: -6.5}
+  m_LocalPosition: {x: -5.8, y: 13.71, z: 9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8491,7 +8459,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1406076240
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8691,7 +8661,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1440941473
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8923,6 +8895,94 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1466977403}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1485164305
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 29.744
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 29.744
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 29.744
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 1eec4bc9b5902b744b408a0614b9513d, type: 2}
+    - target: {fileID: -5754084199372789682, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -462981019419857548, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+    - target: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_Name
+      value: shadowTestModel (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 564339506}
+  m_SourcePrefab: {fileID: 100100000, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
 --- !u!1 &1489225091
 GameObject:
   m_ObjectHideFlags: 0
@@ -9140,7 +9200,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1521258923
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9423,7 +9485,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1606318623
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9884,7 +9948,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1654355099
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9969,7 +10035,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1662728344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10001,7 +10067,9 @@ MonoBehaviour:
   range: 45
   intensity: 1.5
   baked: 0
-  castShadow: 1
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1662728346
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10061,7 +10129,7 @@ Transform:
   m_GameObject: {fileID: 1662728343}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.07, y: 11.6, z: -8.97}
+  m_LocalPosition: {x: 5.3, y: 11.6, z: -11.53}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10705,7 +10773,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1758261991
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10807,7 +10877,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1762254629
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10924,7 +10996,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1784085578
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11207,7 +11281,9 @@ MonoBehaviour:
   range: 700
   intensity: 1.5
   baked: 1
-  castShadow: 0
+  shading: 0
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1834309487
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11422,7 +11498,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1869612554
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11676,7 +11754,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1920654109
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12042,7 +12122,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1964633261
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12325,7 +12407,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1994610547
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12442,7 +12526,9 @@ MonoBehaviour:
   range: 10
   intensity: 0.5
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &1994983982
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12642,7 +12728,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &2065632477
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12842,7 +12930,9 @@ MonoBehaviour:
   range: 5
   intensity: 0.7
   baked: 1
-  castShadow: 0
+  shading: 2
+  blurAmount: 0
+  blurPower: 0
 --- !u!23 &2139071252
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -13095,4 +13185,4 @@ SceneRoots:
   - {fileID: 1749727903}
   - {fileID: 1281951528}
   - {fileID: 1606865127}
-  - {fileID: 189277296}
+  - {fileID: 1485164305}

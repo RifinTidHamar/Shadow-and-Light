@@ -25,6 +25,8 @@ struct CSLight
 	float4 color;
 	float range;
 	float intensity;
+    float blurAmount;
+    float blurPower;
 };
 
 struct usedUV
@@ -53,7 +55,7 @@ RWTexture2D<float4> nm; //normal map
 //int numLights;
 int numTriangles;
 int texRes;
-static float eps = 0.046;
+static float eps = 0.001;//0.046;
 
 float hash11(float p)
 {
@@ -127,7 +129,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
             float3 lightVec = normalize(locMinusLight);
             float angleBetweenLightAndLocWNormalMap = dot(lightVec, usedUVs[uvInd].normal);
             float angleBetweenLightAndLocGeo = dot(lightVec, usedUVs[uvInd].geoNormal);
-            if (dist < maxDist && angleBetweenLightAndLocGeo < 0)
+            if (dist < maxDist && angleBetweenLightAndLocWNormalMap < 0)
             {
                 bool shadowHit = false;
                 float distFromLightToPlane = 0;
@@ -145,7 +147,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                                 continue;
                             if (distFromLightToPlane - eps >= 0 /*&& distFromLightToPlane < dist*/)
                             {
-                                usedUVs[uvInd].distFromLight = length(usedUVs[uvInd].worldLoc - lightLoc);
+                                usedUVs[uvInd].distFromLight = length(locMinusLight);
 
                                 float3 inters = lightLoc + (distFromLightToPlane * lightVec);
 
@@ -171,36 +173,40 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
 
                                 if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
                                 {
-                                    float distFromInterToUV = length(inters - uvWPos);
-
-                                    if (usedUVs[uvInd].distFromShadowedObject != 0)
-                                        usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
-                                    else
-                                        usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
-                               
                                     shadowHit = true;
                                     threadShad = 1;
                                     if(lights[i].shadowType == 2)
                                     {
+                                        threadShad = 0;
+
+                                        float distFromInterToUV = length(inters - uvWPos);
+
+                                        if (usedUVs[uvInd].distFromShadowedObject != 0)
+                                            usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
+                                        else
+                                            usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
+                                        
                                         float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
-                                        blurAmount = pow(blurAmount, 4);
-                                        //totalResult[id.xy] += blurAmount;
-                                        blurAmount *= 60;
-                                        //blurAmount = clamp(blurAmount, 0, 20);
-                                        //blurAmount = 4;
-                                        float4 sum = 1;
-                                        float addVal = (float) 2 / 60;
-                                        for (int i = 0; i < blurAmount; i++)
-                                        {
-                                            if (sum.r > 0 + addVal)
-                                                sum -= addVal;
-                                        }
-                                        threadShad = sum;
+                                        blurAmount = pow(blurAmount, lights[i].blurPower);
+                                        blurAmount *= lights[i].blurAmount;
+                                
+                                        //float4 sum = 1;
+                                        //float addVal = (float) lights[i].blurPower / lights[i].blurAmount;
+                                        //for (int i = 0; i < blurAmount; i++)
+                                        //{
+                                        //    if (sum.r > 0 + addVal)
+                                        //        sum -= addVal;
+                                        //}
+                                        threadShad += 1 - blurAmount;
+                                        //threadShad = threadShad * lights[i].blurPower + (1 - lights[i].blurPower);
+                                        threadShad = clamp(threadShad, 0, 1);
                                     }
                                 }
                             }
                         }
                     }
+                    usedUVs[uvInd].distFromShadowedObject = 0;
+
                 }
                 if (!shadowHit)
                     usedUVs[uvInd].distFromShadowedObject = 0; //no object for shadow
@@ -210,7 +216,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                     threadUnlit = (1 - threadShad) * val * val * usedUVs[uvInd].lit * lights[i].color * lights[i].intensity;
                 }
             }
-      
+            totalResult[id.xy] = 0;
             totalResult[id.xy] += threadUnlit;
             //totalResult[id.xy] = clamp(totalResult[id.xy], 0, 1);
         }
@@ -223,7 +229,6 @@ void Apply(uint3 id : SV_DispatchThreadID)
     float4 totCol = RlTLight[id.xy] + BLight[id.xy];
     totCol = saturate(totCol);
     totalResult[id.xy] = totCol;//lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
-    RlTLight[id.xy] = 0;
    
     //totalResult[id.xy] = float4(1, 0, 0, 1);
 
