@@ -23,7 +23,6 @@ public class Shading : MonoBehaviour
     int lightHandle;
     int blurHandle;
     int applyHandle;
-    int dtID;
      
     struct MeshTriangle
     {
@@ -45,14 +44,12 @@ public class Shading : MonoBehaviour
         public Vector4 color;
         public float range;
         public float intensity;
-        public float blurAmount;
+        public float blurMultiplier;
         public float blurPower;
     }
 
     struct usedUV
     {
-        public float distInterToLight;
-        public float distFromLight;
         public Vector3 worldLoc;
         public Vector3 normal;
         public Vector3 geoNormal;
@@ -75,7 +72,7 @@ public class Shading : MonoBehaviour
     int usedUVNum;// = texRes * texRes;
     int meshTriangleSize = sizeof(float) * 18 + sizeof(float) * 6;
     int lightSize = sizeof(int) * 1 + sizeof(float) * 11;
-    int usedUVSize = sizeof(float) * 12 + sizeof(int) * 1;
+    int usedUVSize = sizeof(float) * 10 + sizeof(int) * 1;
     GameObject[] lightObject;
     LightData[] lightData;
 
@@ -83,6 +80,7 @@ public class Shading : MonoBehaviour
     void Start()
     {
         usedUVNum = texRes * texRes;
+
         finalLightText = new RenderTexture(texRes, texRes, 4);
         finalLightText.enableRandomWrite = true;
         finalLightText.filterMode = FilterMode.Point;
@@ -136,20 +134,12 @@ public class Shading : MonoBehaviour
         Vector3[] worldVerts = new Vector3[mesh.vertices.Length];
         for(int i = 0; i < mesh.vertices.Length; i++)
         {
-            //worldVerts[i] = new Vector4(mesh.vertices[i].x, mesh.vertices[i].y, mesh.vertices[i].z, 1);
             worldVerts[i] = meshTransform.localToWorldMatrix.MultiplyVector(mesh.vertices[i]);
         }
         meshTriangleNum = mesh.triangles.Length/3;
-        //mesh.triangles[0];
-        //Debug.Log(meshTriangleNum);
         triangleArr = new MeshTriangle[meshTriangleNum];
         int[] vertIndices = mesh.triangles;
-        /*for(int i = 0; i < vertIndices.Length; i++)
-        {
-            Debug.Log(vertIndices[i]);
-        }*/
-        //Debug.Log(vertIndices.Length / 3);
-        //Debug.Log(mesh.uv.Length);
+
         for (int i = 0; i < meshTriangleNum; i++)
         {
             int vCount = i * 3;
@@ -165,23 +155,15 @@ public class Shading : MonoBehaviour
             triangleArr[i].p3Uv = mesh.uv[vertIndices[vCount + 2]];
 
             triangleArr[i].normal = mesh.normals[vertIndices[vCount + 0]];
-            //triangleArr[i].normal = new Vector3(-triangleArr[i].normal.x, triangleArr[i].normal.y, triangleArr[i].normal.z);
-
             triangleArr[i].tangent = mesh.tangents[vertIndices[vCount + 0]];
-
             triangleArr[i].binormal = Vector3.Cross(triangleArr[i].normal, triangleArr[i].tangent);
-            
-            //Debug.Log(triangleArr[i].p1Uv + " " + triangleArr[i].p2Uv + " " + triangleArr[i].p3Uv);
         }
 
 
         usedUVsArr = new usedUV[usedUVNum];
         for(int i = 0; i < usedUVNum; i++)
         {
-            usedUVsArr[i].distInterToLight = 0;
-            usedUVsArr[i].distFromLight = 0;
             usedUVsArr[i].worldLoc = new Vector3(0, 0, 0);
-            //usedUVsArr[i].uvPos = new Vector2(0, 0);
             usedUVsArr[i].normal = new Vector3(0, 0, 0);
             usedUVsArr[i].geoNormal = new Vector3(0, 0, 0);
             usedUVsArr[i].used = 0;
@@ -189,19 +171,12 @@ public class Shading : MonoBehaviour
         }
     }
 
-    /*Vector3 shaveOffEndPoint(Vector4 x)
-    {
-        Vector3 ret = new Vector3(x.x, x.y, x.z);
-        return ret;
-    }*/
-
     void initShader()
     {
         //init
         comp.SetInt("numTriangles", meshTriangleNum);
         comp.SetInt("texRes", texRes);
 
-        //comp.SetFloat(dtID, 0);
         triangleBuffer = new ComputeBuffer(meshTriangleNum, meshTriangleSize);
         if(RlTLightNum != 0)
             RlTLightBuffer = new ComputeBuffer(RlTLightNum, lightSize);
@@ -245,7 +220,7 @@ public class Shading : MonoBehaviour
                     BLightArr[BLightInd].color = lightData[i].color;
                     BLightArr[BLightInd].range = lightData[i].range;
                     BLightArr[BLightInd].intensity = lightData[i].intensity;
-                    BLightArr[BLightInd].blurAmount = lightData[i].blurAmount;  
+                    BLightArr[BLightInd].blurMultiplier = lightData[i].blurMultiplier;  
                     BLightArr[BLightInd].blurPower = lightData[i].blurPower;
                     BLightInd++;
                 }
@@ -294,7 +269,7 @@ public class Shading : MonoBehaviour
                     RlTLightArr[RlTLightInd].color = lightData[i].color;
                     RlTLightArr[RlTLightInd].range = lightData[i].range;
                     RlTLightArr[RlTLightInd].intensity = lightData[i].intensity;
-                    RlTLightArr[RlTLightInd].blurAmount = lightData[i].blurAmount;
+                    RlTLightArr[RlTLightInd].blurMultiplier = lightData[i].blurMultiplier;
                     RlTLightArr[RlTLightInd].blurPower = lightData[i].blurPower;    
                     RlTLightInd++;
                 }

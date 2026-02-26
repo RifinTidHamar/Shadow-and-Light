@@ -696,7 +696,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &110046767
 MeshRenderer:
@@ -1012,6 +1012,34 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 179005383}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &181972412 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+  m_PrefabInstance: {fileID: 2088825891}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &181972413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 181972412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 056c9d90afdf5b74c8f41ef5730d7687, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  comp: {fileID: 7200000, guid: 2b56a617f670d1347ac34c82f58df6ae, type: 3}
+  texRes: 256
+  shadeMat: {fileID: 2100000, guid: 1e3c26a391170694ba613c632525d1bc, type: 2}
+  mesh: {fileID: -2222346464153789849, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+  meshTransform: {fileID: 181972416}
+  normalMap: {fileID: 2800000, guid: fa32fa6ee42c2744a9e3d0cec5f619c5, type: 3}
+--- !u!4 &181972416 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+  m_PrefabInstance: {fileID: 2088825891}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &250161811
 GameObject:
   m_ObjectHideFlags: 0
@@ -1411,7 +1439,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &303853927
 MeshRenderer:
@@ -2286,7 +2314,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &471228570
 MeshRenderer:
@@ -2654,7 +2682,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &509804275
 MeshRenderer:
@@ -3036,7 +3064,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!114 &525116895
 MonoBehaviour:
@@ -3071,7 +3099,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   comp: {fileID: 7200000, guid: 2b56a617f670d1347ac34c82f58df6ae, type: 3}
-  texRes: 256
+  texRes: 128
   shadeMat: {fileID: 2100000, guid: 1eec4bc9b5902b744b408a0614b9513d, type: 2}
   mesh: {fileID: -462981019419857548, guid: 287513e9f2f4ee54cbcafaa4b651595b, type: 3}
   meshTransform: {fileID: 564339509}
@@ -3133,7 +3161,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &579441519
 MeshRenderer:
@@ -3252,7 +3280,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &585686716
 MeshRenderer:
@@ -3809,7 +3837,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &695782658
 MeshRenderer:
@@ -3928,7 +3956,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &721448907
 MeshRenderer:
@@ -4047,7 +4075,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &724038801
 MeshRenderer:
@@ -4554,7 +4582,7 @@ MonoBehaviour:
   shadeMat: {fileID: 2100000, guid: 1e3c26a391170694ba613c632525d1bc, type: 2}
   mesh: {fileID: 6864364205052522755, guid: d7404d483c4dfd94f8860c9fc9c7cfd3, type: 3}
   meshTransform: {fileID: 821791405}
-  normalMap: {fileID: 2800000, guid: dd4c15f5db9739342a15090fb1ec4636, type: 3}
+  normalMap: {fileID: 2800000, guid: f1f39c66d32b7c34b916e1076cf869fd, type: 3}
 --- !u!1 &827153780
 GameObject:
   m_ObjectHideFlags: 0
@@ -4622,7 +4650,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &827153784
 MeshRenderer:
@@ -4824,7 +4852,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &865213452
 MeshRenderer:
@@ -5026,7 +5054,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &881679138
 MeshRenderer:
@@ -5213,7 +5241,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &895270091
 MeshRenderer:
@@ -5593,7 +5621,7 @@ Transform:
   m_GameObject: {fileID: 960437516}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 18.08, z: 0}
+  m_LocalPosition: {x: -0.19, y: 8.75, z: 4.23}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5627,11 +5655,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 1, g: 0.3254902, b: 0, a: 1}
-  range: 700
+  range: 100
   intensity: 1.5
   baked: 0
   shading: 2
-  blurAmount: 60
+  blurMultiplier: 0
   blurPower: 3.9
 --- !u!23 &960437520
 MeshRenderer:
@@ -5818,7 +5846,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1025427103
 MeshRenderer:
@@ -6126,7 +6154,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1065061640
 MeshRenderer:
@@ -6430,7 +6458,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1092123719
 MeshRenderer:
@@ -6647,7 +6675,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1173077421
 MeshRenderer:
@@ -7227,7 +7255,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1249259505
 MeshRenderer:
@@ -7346,7 +7374,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1254036987
 MeshRenderer:
@@ -7450,7 +7478,7 @@ MonoBehaviour:
   intensity: 3
   baked: 0
   shading: 0
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1281951526
 MeshRenderer:
@@ -7569,7 +7597,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1283211055
 MeshRenderer:
@@ -7688,7 +7716,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1284545537
 MeshRenderer:
@@ -7807,7 +7835,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1300356835
 MeshRenderer:
@@ -8258,7 +8286,7 @@ MonoBehaviour:
   intensity: 1.5
   baked: 0
   shading: 0
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1393044404
 MeshRenderer:
@@ -8460,7 +8488,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1406076240
 MeshRenderer:
@@ -8662,7 +8690,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1440941473
 MeshRenderer:
@@ -9201,7 +9229,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1521258923
 MeshRenderer:
@@ -9486,7 +9514,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1606318623
 MeshRenderer:
@@ -9949,7 +9977,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1654355099
 MeshRenderer:
@@ -10030,12 +10058,12 @@ GameObject:
   - component: {fileID: 1662728345}
   - component: {fileID: 1662728344}
   m_Layer: 0
-  m_Name: bigLight (3)
+  m_Name: bigOrange
   m_TagString: Light
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1662728344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10068,8 +10096,8 @@ MonoBehaviour:
   intensity: 1.5
   baked: 0
   shading: 2
-  blurAmount: 0
-  blurPower: 0
+  blurMultiplier: 1
+  blurPower: 1
 --- !u!23 &1662728346
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10129,9 +10157,9 @@ Transform:
   m_GameObject: {fileID: 1662728343}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.3, y: 11.6, z: -11.53}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: -2.63, y: 4.59, z: 8.75}
+  m_LocalScale: {x: 2.23, y: 2.23, z: 2.23}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -10774,7 +10802,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1758261991
 MeshRenderer:
@@ -10878,7 +10906,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1762254629
 MeshRenderer:
@@ -10997,7 +11025,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1784085578
 MeshRenderer:
@@ -11244,7 +11272,7 @@ GameObject:
   - component: {fileID: 1834309486}
   - component: {fileID: 1834309485}
   m_Layer: 0
-  m_Name: bigLight (1)
+  m_Name: bigBaked
   m_TagString: Light
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11277,12 +11305,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a2aadd7babec244aa6c61795d19ef4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 1, g: 1, b: 1, a: 0}
+  color: {r: 0, g: 0.026094913, b: 1, a: 0}
   range: 700
   intensity: 1.5
   baked: 1
-  shading: 0
-  blurAmount: 0
+  shading: 2
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1834309487
 MeshRenderer:
@@ -11499,7 +11527,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1869612554
 MeshRenderer:
@@ -11755,7 +11783,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1920654109
 MeshRenderer:
@@ -12123,7 +12151,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1964633261
 MeshRenderer:
@@ -12408,7 +12436,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1994610547
 MeshRenderer:
@@ -12527,7 +12555,7 @@ MonoBehaviour:
   intensity: 0.5
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &1994983982
 MeshRenderer:
@@ -12729,7 +12757,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &2065632477
 MeshRenderer:
@@ -12796,6 +12824,86 @@ MonoBehaviour:
   fireLight: {fileID: 2065632476}
   intRange: 0.1
   ranRange: 0.5
+--- !u!1001 &2088825891
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e3c26a391170694ba613c632525d1bc, type: 2}
+    - target: {fileID: 919132149155446097, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      propertyPath: m_Name
+      value: simpleScene
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 181972413}
+  m_SourcePrefab: {fileID: 100100000, guid: 8e1f7e4d7e4926e4e981563d530729ef, type: 3}
 --- !u!1 &2116641585
 GameObject:
   m_ObjectHideFlags: 0
@@ -12931,7 +13039,7 @@ MonoBehaviour:
   intensity: 0.7
   baked: 1
   shading: 2
-  blurAmount: 0
+  blurMultiplier: 0
   blurPower: 0
 --- !u!23 &2139071252
 MeshRenderer:
@@ -13186,3 +13294,4 @@ SceneRoots:
   - {fileID: 1281951528}
   - {fileID: 1606865127}
   - {fileID: 1485164305}
+  - {fileID: 2088825891}

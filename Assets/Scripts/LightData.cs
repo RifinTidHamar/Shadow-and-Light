@@ -10,8 +10,7 @@ public class LightData : MonoBehaviour
     public float intensity;
     public bool baked;
     public shadowType shading;
-
-    public float blurAmount;
+    public float blurMultiplier;
     public float blurPower;
 }
 
@@ -25,7 +24,7 @@ public class LightDataEditor : Editor
     SerializedProperty intensity;
     SerializedProperty baked;
     SerializedProperty shading;
-    SerializedProperty blurAmount;
+    SerializedProperty blurMultiplier;
     SerializedProperty blurPower;
 
     void OnEnable()
@@ -35,7 +34,7 @@ public class LightDataEditor : Editor
         intensity = serializedObject.FindProperty("intensity");
         baked = serializedObject.FindProperty("baked");
         shading = serializedObject.FindProperty("shading");
-        blurAmount = serializedObject.FindProperty("blurAmount");
+        blurMultiplier = serializedObject.FindProperty("blurMultiplier");
         blurPower = serializedObject.FindProperty("blurPower");
     }
 
@@ -54,7 +53,7 @@ public class LightDataEditor : Editor
             EditorGUI.indentLevel = 1;
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Soft Shadow Settings", EditorStyles.boldLabel);
-            EditorGUILayout.Slider(blurAmount, 0f, 40, new GUIContent("Blur Amount"));
+            EditorGUILayout.Slider(blurMultiplier, 0f, 200f, new GUIContent("Blur Multiplier"));
             EditorGUILayout.Slider(blurPower, 1f, 15, new GUIContent("Blur Power"));
         }
 

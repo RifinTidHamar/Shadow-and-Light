@@ -2,8 +2,6 @@
 #pragma kernel uvToWorld
 #pragma kernel DynamicLight
 #pragma kernel Apply
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
 
 struct MeshTriangle
 {
@@ -25,14 +23,12 @@ struct CSLight
 	float4 color;
 	float range;
 	float intensity;
-    float blurAmount;
+    float blurMultiplier;
     float blurPower;
 };
 
 struct usedUV
 {
-    float distFromShadowedObject;
-	float distFromLight;
 	float3 worldLoc;
 	float3 normal;
 	float3 geoNormal;
@@ -45,10 +41,9 @@ StructuredBuffer<CSLight> lights;
 RWStructuredBuffer<usedUV> usedUVs;
 StructuredBuffer<int> numLights;
 
-
 RWTexture2D<float4> totalResult; //finalResult of a dispatch (can be the actual final result, or real time lighting, or baked lighting depending on usage) 
 
-RWTexture2D<float4> RlTLight; //real time light texture used for combingin in final apply
+RWTexture2D<float4> RlTLight; //real time light texture used for combining in final apply
 RWTexture2D<float4> BLight; //baked light texture used for combining in final apply
 RWTexture2D<float4> nm; //normal map
 
@@ -76,21 +71,22 @@ void uvToWorld (uint3 id : SV_DispatchThreadID)
 	float c;
 	float2 curUV = float2((float)id.x / (float)texRes, (float)id.y / (float)texRes);
     //could be cool to check only half the triangles, and then randomly use pick them.
+
 	for (int i = 0; i < numTriangles; i++)
 	{
 		float2 p1 = triangles[i].p1Uv;
 		float2 p2 = triangles[i].p2Uv;
 		float2 p3 = triangles[i].p3Uv;
 
-
-		a = ((p2.y - p3.y) * (curUV.x - p3.x) + (p3.x - p2.x) * (curUV.y - p3.y)) / ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
-		b = ((p3.y - p1.y) * (curUV.x - p3.x) + (p1.x - p3.x) * (curUV.y - p3.y)) / ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
+        float denom = (p2.y - p3.y) * (p1.x - p3.x) - (p2.x - p3.x) * (p1.y - p3.y);
+        
+        a = ((p2.y - p3.y) * (curUV.x - p3.x) - (p2.x - p3.x) * (curUV.y - p3.y)) / denom;
+        b = ((p3.y - p1.y) * (curUV.x - p3.x) - (p3.x - p1.x) * (curUV.y - p3.y)) / denom;
 		c = 1 - a - b;
         
         if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps) //inside triangle
 		{
 			usedUVs[texRes * id.y + id.x].used = 1;
-			//usedUVs[texRes * id.y + id.x].uvPos = id.xy;//what is its purpose? 
 
 			float3 wp1 = triangles[i].p1WPos;
 			float3 wp2 = triangles[i].p2WPos;
@@ -99,7 +95,7 @@ void uvToWorld (uint3 id : SV_DispatchThreadID)
 			usedUVs[texRes * id.y + id.x].worldLoc = a * wp1 + b * wp2 + c * wp3;
 			nm[id.xy].g = 1 - nm[id.xy].g;
 			nm[id.xy] = nm[id.xy] *  2 - 1;
-			usedUVs[texRes * id.y + id.x].normal = triangles[i].normal * nm[id.xy].b + triangles[i].binormal * nm[id.xy].g + triangles[i].tangent* nm[id.xy].r;// 
+			usedUVs[texRes * id.y + id.x].normal = triangles[i].normal * nm[id.xy].b + triangles[i].binormal * nm[id.xy].g + triangles[i].tangent* nm[id.xy].r;
 			usedUVs[texRes * id.y + id.x].normal = normalize(usedUVs[texRes * id.y + id.x].normal);
             usedUVs[texRes * id.y + id.x].geoNormal = triangles[i].normal;
 			break;
@@ -121,102 +117,100 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
         {
             float4 threadUnlit = 0;
             float4 threadShad = 0;
-            float3 lightLoc = lights[i].loc;
-            float3 locMinusLight = usedUVs[uvInd].worldLoc - lightLoc;
+            float3 locMinusLight = usedUVs[uvInd].worldLoc - lights[i].loc;
             float3 uvWPos = usedUVs[texRes * id.y + id.x].worldLoc;
-            float dist = length(locMinusLight);
-            float maxDist = lights[i].range;
+            float distUVtoLight = length(locMinusLight);
             float3 lightVec = normalize(locMinusLight);
             float angleBetweenLightAndLocWNormalMap = dot(lightVec, usedUVs[uvInd].normal);
             float angleBetweenLightAndLocGeo = dot(lightVec, usedUVs[uvInd].geoNormal);
-            if (dist < maxDist && angleBetweenLightAndLocWNormalMap < 0)
+            if (distUVtoLight < lights[i].range && angleBetweenLightAndLocWNormalMap < 0)
             {
                 bool shadowHit = false;
-                float distFromLightToPlane = 0;
+                float distFromLighttoPlane = 0;
                 if (lights[i].shadowType > 0)
                 {
+                    float minDistUVtoInter = 0;
+                    float maxDistUVtoInter = 0;
                     for (int j = 0; j < numTriangles; j++)
                     {
-                        float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are near parrallel
+                        float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are opposite
 
-                        if (abs(parallelDot) >= 0) // if they are not, then they intersect
+                        if (abs(parallelDot) >= 0) // if they are not, and not parallel, then they intersect
                         {
-                            distFromLightToPlane = dot(triangles[j].p3WPos - lightLoc, triangles[j].normal) / parallelDot;
+                            distFromLighttoPlane = dot(triangles[j].p3WPos - lights[i].loc, triangles[j].normal) / parallelDot; //https://www.youtube.com/watch?v=x_SEyKtCBPU
                         
-                            if (distFromLightToPlane >= dist - eps)
+                            if (distFromLighttoPlane >= distUVtoLight - eps)
                                 continue;
-                            if (distFromLightToPlane - eps >= 0 /*&& distFromLightToPlane < dist*/)
+
+                            float3 inters = lights[i].loc + (distFromLighttoPlane * lightVec);
+
+                            //real time collision textbook section 3.4
+                            
+                            float3 p1 = triangles[j].p1WPos;
+                            float3 p2 = triangles[j].p2WPos;
+                            float3 p3 = triangles[j].p3WPos;
+
+                            float3 v0 = p2 - p1;
+                            float3 v1 = p3 - p1;
+                            float3 v2 = inters - p1;
+
+                            float d00 = dot(v0, v0);
+                            float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
+                            float d11 = dot(v1, v1);
+                            float d20 = dot(v2, v0);
+                            float d21 = dot(v2, v1);
+
+                            float denom = d00 * d11 - d01 * d01;
+
+                            float a = (d11 * d20 - d01 * d21) / denom;
+                            float b = (d00 * d21 - d01 * d20) / denom;
+                            float c = 1.0f - a - b;
+
+                            if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
                             {
-                                usedUVs[uvInd].distFromLight = length(locMinusLight);
-
-                                float3 inters = lightLoc + (distFromLightToPlane * lightVec);
-
-                                float3 p1 = triangles[j].p1WPos;
-                                float3 p2 = triangles[j].p2WPos;
-                                float3 p3 = triangles[j].p3WPos;
-
-                                float3 v0 = p2 - p1;
-                                float3 v1 = p3 - p1;
-                                float3 v2 = inters - p1;
-
-                                float d00 = dot(v0, v0);
-                                float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
-                                float d11 = dot(v1, v1);
-                                float d20 = dot(v2, v0);
-                                float d21 = dot(v2, v1);
-
-                                float denom = d00 * d11 - d01 * d01;
-
-                                float a = (d11 * d20 - d01 * d21) / denom;
-                                float b = (d00 * d21 - d01 * d20) / denom;
-                                float c = 1.0f - a - b;
-
-                                if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
+                                shadowHit = true;
+                                threadShad = 1;
+                                if(lights[i].shadowType == 2)
                                 {
-                                    shadowHit = true;
-                                    threadShad = 1;
-                                    if(lights[i].shadowType == 2)
+                                    threadShad = 0;
+
+                                    float distFromInterToUV = length(inters - uvWPos);
+      
+                                    //this should be changed to only have blurring process take place if the mindDist is changed. That way it's not done every loop. 
+                                    if (minDistUVtoInter != 0)
                                     {
-                                        threadShad = 0;
-
-                                        float distFromInterToUV = length(inters - uvWPos);
-
-                                        if (usedUVs[uvInd].distFromShadowedObject != 0)
-                                            usedUVs[uvInd].distFromShadowedObject = min(distFromInterToUV, usedUVs[uvInd].distFromShadowedObject);
-                                        else
-                                            usedUVs[uvInd].distFromShadowedObject = distFromInterToUV;
-                                        
-                                        float blurAmount = (usedUVs[uvInd].distFromShadowedObject / usedUVs[uvInd].distFromLight);
-                                        blurAmount = pow(blurAmount, lights[i].blurPower);
-                                        blurAmount *= lights[i].blurAmount;
-                                
-                                        //float4 sum = 1;
-                                        //float addVal = (float) lights[i].blurPower / lights[i].blurAmount;
-                                        //for (int i = 0; i < blurAmount; i++)
-                                        //{
-                                        //    if (sum.r > 0 + addVal)
-                                        //        sum -= addVal;
-                                        //}
-                                        threadShad += 1 - blurAmount;
-                                        //threadShad = threadShad * lights[i].blurPower + (1 - lights[i].blurPower);
-                                        threadShad = clamp(threadShad, 0, 1);
+                                        minDistUVtoInter = min(distFromInterToUV, minDistUVtoInter);
+                                        maxDistUVtoInter = max(distFromInterToUV, maxDistUVtoInter);
                                     }
+                                    else
+                                    {
+                                        minDistUVtoInter = distFromInterToUV;
+                                        maxDistUVtoInter = distFromInterToUV;// investigate how this could be used
+                                    }
+                                        
+                                    float blurAmount = (minDistUVtoInter / distUVtoLight);
+                                    blurAmount = pow(blurAmount, lights[i].blurPower);
+                                    blurAmount *= lights[i].blurMultiplier;
+                                
+                                    threadShad += 1 - blurAmount;
+                                    threadShad = clamp(threadShad, 0, 1);
                                 }
+                                else
+                                    // we need to go through every triangle for the dynamic blur since 
+                                    //it is based off the nearest triangle depth, and the first triangle in the 
+                                    //loop may not be the nearest. However for solid shadow, that's not necessary,
+                                    //so we can break the loop as soon as we find a triangle that shades the texel
+                                    break;
                             }
                         }
                     }
-                    usedUVs[uvInd].distFromShadowedObject = 0;
-
                 }
-                if (!shadowHit)
-                    usedUVs[uvInd].distFromShadowedObject = 0; //no object for shadow
                 if (angleBetweenLightAndLocWNormalMap < 0)
                 {
-                    float4 val = (1 - dist / maxDist) * -1 * angleBetweenLightAndLocWNormalMap;
+                    float4 val = (1 - distUVtoLight / lights[i].range) * -1 * angleBetweenLightAndLocWNormalMap;
                     threadUnlit = (1 - threadShad) * val * val * usedUVs[uvInd].lit * lights[i].color * lights[i].intensity;
                 }
             }
-            totalResult[id.xy] = 0;
             totalResult[id.xy] += threadUnlit;
             //totalResult[id.xy] = clamp(totalResult[id.xy], 0, 1);
         }
@@ -229,7 +223,7 @@ void Apply(uint3 id : SV_DispatchThreadID)
     float4 totCol = RlTLight[id.xy] + BLight[id.xy];
     totCol = saturate(totCol);
     totalResult[id.xy] = totCol;//lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
-   
+    RlTLight[id.xy] = 0;
     //totalResult[id.xy] = float4(1, 0, 0, 1);
 
     //float4 col = [id.xy]; // * (shad[id.xy].x);
