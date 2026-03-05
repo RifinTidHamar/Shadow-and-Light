@@ -54,7 +54,7 @@ public class Shading : MonoBehaviour
         public Vector3 normal;
         public Vector3 geoNormal;
         public int used;
-        public float lit;
+        public int lit;
     };
 
     ComputeBuffer triangleBuffer;
@@ -72,7 +72,7 @@ public class Shading : MonoBehaviour
     int usedUVNum;// = texRes * texRes;
     int meshTriangleSize = sizeof(float) * 18 + sizeof(float) * 6;
     int lightSize = sizeof(int) * 1 + sizeof(float) * 11;
-    int usedUVSize = sizeof(float) * 10 + sizeof(int) * 1;
+    int usedUVSize = sizeof(float) * 9 + sizeof(int) * 2;
     GameObject[] lightObject;
     LightData[] lightData;
 
@@ -104,7 +104,7 @@ public class Shading : MonoBehaviour
         rend = GetComponent<Renderer>();
         rend.enabled = true;
 
-        uvToWorldHandle = comp.FindKernel("uvToWorld");
+        uvToWorldHandle = comp.FindKernel("UvToWorld");
         lightHandle = comp.FindKernel("DynamicLight");
         applyHandle = comp.FindKernel("Apply");
 
@@ -277,9 +277,8 @@ public class Shading : MonoBehaviour
             RlTLightBuffer.SetData(RlTLightArr);
 
             comp.Dispatch(lightHandle, texRes / 8, texRes / 8, 1);
-
+            comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);
         }
-        comp.Dispatch(applyHandle, texRes / 8, texRes / 8, 1);
 
 
         //uint x;

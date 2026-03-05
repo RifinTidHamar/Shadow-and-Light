@@ -1,5 +1,5 @@
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel uvToWorld
+#pragma kernel UvToWorld
 #pragma kernel DynamicLight
 #pragma kernel Apply
 
@@ -33,7 +33,7 @@ struct usedUV
 	float3 normal;
 	float3 geoNormal;
 	int used;
-	float lit;
+	int lit;
 };
 
 StructuredBuffer<MeshTriangle> triangles;
@@ -62,37 +62,59 @@ float hash11(float p)
     return p;
 }
 
-[numthreads(8,8,1)]
-void uvToWorld (uint3 id : SV_DispatchThreadID)
+bool checkIntersectionInTri(float3 inters, MeshTriangle tri)
 {
-	//Result[id.xy] = float4(0.01, 0.01, 0., 1); //ambient light
+    //real time collision textbook section 3.4
+                            
+    float3 p1 = tri.p1WPos;
+    float3 p2 = tri.p2WPos;
+    float3 p3 = tri.p3WPos;
+
+    float3 v0 = p2 - p1;
+    float3 v1 = p3 - p1;
+    float3 v2 = inters - p1;
+
+    float d00 = dot(v0, v0);
+    float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
+    float d11 = dot(v1, v1);
+    float d20 = dot(v2, v0);
+    float d21 = dot(v2, v1);
+
+    float denom = d00 * d11 - d01 * d01;
+
+    float a = (d11 * d20 - d01 * d21) / denom;
+    float b = (d00 * d21 - d01 * d20) / denom;
+        
+    return 0 - eps <= a && 0 - eps <= b && a + b <= 1 + eps;
+}
+
+[numthreads(8,8,1)]
+void UvToWorld (uint3 id : SV_DispatchThreadID)
+{
 	float a;
 	float b;
 	float c;
 	float2 curUV = float2((float)id.x / (float)texRes, (float)id.y / (float)texRes);
-    //could be cool to check only half the triangles, and then randomly use pick them.
 
 	for (int i = 0; i < numTriangles; i++)
 	{
 		float2 p1 = triangles[i].p1Uv;
 		float2 p2 = triangles[i].p2Uv;
 		float2 p3 = triangles[i].p3Uv;
-
-        float denom = (p2.y - p3.y) * (p1.x - p3.x) - (p2.x - p3.x) * (p1.y - p3.y);
+                
+        float denom = (p2.x - p1.x) * (p3.y - p1.y) - (p3.x - p1.x) * (p2.y - p1.y);
         
-        a = ((p2.y - p3.y) * (curUV.x - p3.x) - (p2.x - p3.x) * (curUV.y - p3.y)) / denom;
-        b = ((p3.y - p1.y) * (curUV.x - p3.x) - (p3.x - p1.x) * (curUV.y - p3.y)) / denom;
-		c = 1 - a - b;
+        a = ((curUV.x - p1.x) * (p3.y - p1.y) - (p3.x - p1.x) * (curUV.y - p1.y)) / denom;
+        b = ((p2.x - p1.x) * (curUV.y - p1.y) - (curUV.x - p1.x) * (p2.y - p1.y)) / denom;
         
-        if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps) //inside triangle
+        if (0 - eps <= a && 0 - eps <= b && a + b <= 1 + eps) //inside triangle
 		{
 			usedUVs[texRes * id.y + id.x].used = 1;
 
 			float3 wp1 = triangles[i].p1WPos;
 			float3 wp2 = triangles[i].p2WPos;
 			float3 wp3 = triangles[i].p3WPos;
-
-			usedUVs[texRes * id.y + id.x].worldLoc = a * wp1 + b * wp2 + c * wp3;
+            usedUVs[texRes * id.y + id.x].worldLoc = wp1 + a * (wp2 - wp1) + b * (wp3 - wp1);
 			nm[id.xy].g = 1 - nm[id.xy].g;
 			nm[id.xy] = nm[id.xy] *  2 - 1;
 			usedUVs[texRes * id.y + id.x].normal = triangles[i].normal * nm[id.xy].b + triangles[i].binormal * nm[id.xy].g + triangles[i].tangent* nm[id.xy].r;
@@ -135,48 +157,27 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                     {
                         float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are opposite
 
-                        if (abs(parallelDot) >= 0) // if they are not, and not parallel, then they intersect
+                        // if they are not, and not parallel, then they intersect
+                        if (abs(parallelDot) >= 0) 
                         {
-                            distFromLighttoPlane = dot(triangles[j].p3WPos - lights[i].loc, triangles[j].normal) / parallelDot; //https://www.youtube.com/watch?v=x_SEyKtCBPU
+                            //https://www.youtube.com/watch?v=x_SEyKtCBPU
+                            distFromLighttoPlane = dot(triangles[j].p3WPos - lights[i].loc, triangles[j].normal) / parallelDot; 
                         
                             if (distFromLighttoPlane >= distUVtoLight - eps)
                                 continue;
 
-                            float3 inters = lights[i].loc + (distFromLighttoPlane * lightVec);
-
-                            //real time collision textbook section 3.4
-                            
-                            float3 p1 = triangles[j].p1WPos;
-                            float3 p2 = triangles[j].p2WPos;
-                            float3 p3 = triangles[j].p3WPos;
-
-                            float3 v0 = p2 - p1;
-                            float3 v1 = p3 - p1;
-                            float3 v2 = inters - p1;
-
-                            float d00 = dot(v0, v0);
-                            float d01 = dot(v0, v1); //dot is shorthand for v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
-                            float d11 = dot(v1, v1);
-                            float d20 = dot(v2, v0);
-                            float d21 = dot(v2, v1);
-
-                            float denom = d00 * d11 - d01 * d01;
-
-                            float a = (d11 * d20 - d01 * d21) / denom;
-                            float b = (d00 * d21 - d01 * d20) / denom;
-                            float c = 1.0f - a - b;
-
-                            if (0 - eps <= a && a <= 1 + eps && 0 - eps <= b && b <= 1 + eps && 0 - eps <= c && c <= 1 + eps)
+                            float3 intersection = lights[i].loc + (distFromLighttoPlane * lightVec);
+                            float3 abc;
+                            if (checkIntersectionInTri(intersection, triangles[j]))
                             {
                                 shadowHit = true;
                                 threadShad = 1;
                                 if(lights[i].shadowType == 2)
                                 {
-                                    threadShad = 0;
-
-                                    float distFromInterToUV = length(inters - uvWPos);
+                                    float distFromInterToUV = length(intersection - uvWPos);
       
-                                    //this should be changed to only have blurring process take place if the mindDist is changed. That way it's not done every loop. 
+                                    //this should be changed to only have blurring process 
+                                    //take place if the mindDist is changed. That way it's not done every loop. 
                                     if (minDistUVtoInter != 0)
                                     {
                                         minDistUVtoInter = min(distFromInterToUV, minDistUVtoInter);
@@ -192,7 +193,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                                     blurAmount = pow(blurAmount, lights[i].blurPower);
                                     blurAmount *= lights[i].blurMultiplier;
                                 
-                                    threadShad += 1 - blurAmount;
+                                    threadShad -= blurAmount;
                                     threadShad = clamp(threadShad, 0, 1);
                                 }
                                 else
@@ -208,7 +209,7 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                 if (angleBetweenLightAndLocWNormalMap < 0)
                 {
                     float4 val = (1 - distUVtoLight / lights[i].range) * -1 * angleBetweenLightAndLocWNormalMap;
-                    threadUnlit = (1 - threadShad) * val * val * usedUVs[uvInd].lit * lights[i].color * lights[i].intensity;
+                    threadUnlit = (1 - threadShad) * val * val * (float)usedUVs[uvInd].lit * lights[i].color * lights[i].intensity;
                 }
             }
             totalResult[id.xy] += threadUnlit;
@@ -222,10 +223,6 @@ void Apply(uint3 id : SV_DispatchThreadID)
 {
     float4 totCol = RlTLight[id.xy] + BLight[id.xy];
     totCol = saturate(totCol);
-    totalResult[id.xy] = totCol;//lerp(RlTLight[id.xy], BLight[id.xy], 0.5);
+    totalResult[id.xy] = totCol;
     RlTLight[id.xy] = 0;
-    //totalResult[id.xy] = float4(1, 0, 0, 1);
-
-    //float4 col = [id.xy]; // * (shad[id.xy].x);
-    //totalResult[id.xy] = col;
 }
