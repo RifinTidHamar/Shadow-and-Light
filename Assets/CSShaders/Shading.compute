@@ -33,7 +33,6 @@ struct usedUV
 	float3 normal;
 	float3 geoNormal;
 	int used;
-	int lit;
 };
 
 StructuredBuffer<MeshTriangle> triangles;
@@ -115,7 +114,8 @@ void UvToWorld (uint3 id : SV_DispatchThreadID)
 			float3 wp2 = triangles[i].p2WPos;
 			float3 wp3 = triangles[i].p3WPos;
             usedUVs[texRes * id.y + id.x].worldLoc = wp1 + a * (wp2 - wp1) + b * (wp3 - wp1);
-			nm[id.xy].g = 1 - nm[id.xy].g;
+			
+            nm[id.xy].g = 1 - nm[id.xy].g;
 			nm[id.xy] = nm[id.xy] *  2 - 1;
 			usedUVs[texRes * id.y + id.x].normal = triangles[i].normal * nm[id.xy].b + triangles[i].binormal * nm[id.xy].g + triangles[i].tangent* nm[id.xy].r;
 			usedUVs[texRes * id.y + id.x].normal = normalize(usedUVs[texRes * id.y + id.x].normal);
@@ -128,79 +128,73 @@ void UvToWorld (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void DynamicLight(uint3 id : SV_DispatchThreadID)
 {
-    float4 amb = 0; //float4(0.3/2, 0.15/2, 0.15/2, 1);
-    //totalResult[id.xy] = amb; //ambient light
-
     int uvInd = texRes * id.y + id.x;
-    usedUVs[uvInd].lit = 1;
     if (usedUVs[uvInd].used == 1)
     {
         for (int i = 0; i < numLights[0]; i++)
         {
-            float4 threadUnlit = 0;
-            float4 threadShad = 0;
+            float4 lit = 0;
+            float shad = 1;
             float3 locMinusLight = usedUVs[uvInd].worldLoc - lights[i].loc;
             float3 uvWPos = usedUVs[texRes * id.y + id.x].worldLoc;
             float distUVtoLight = length(locMinusLight);
             float3 lightVec = normalize(locMinusLight);
             float angleBetweenLightAndLocWNormalMap = dot(lightVec, usedUVs[uvInd].normal);
-            float angleBetweenLightAndLocGeo = dot(lightVec, usedUVs[uvInd].geoNormal);
+            //outside of range, and facing the light
             if (distUVtoLight < lights[i].range && angleBetweenLightAndLocWNormalMap < 0)
             {
-                bool shadowHit = false;
                 float distFromLighttoPlane = 0;
-                if (lights[i].shadowType > 0)
+                if (lights[i].shadowType > 0)//hard shadows
                 {
                     float minDistUVtoInter = 0;
-                    float maxDistUVtoInter = 0;
                     for (int j = 0; j < numTriangles; j++)
                     {
-                        float parallelDot = dot(lightVec, triangles[j].normal); //see if plane and lightVec are opposite
+                        //see if plane and lightVec are opposite
+                        float parallelDot = dot(lightVec, triangles[j].normal);
 
                         // if they are not, and not parallel, then they intersect
                         if (abs(parallelDot) >= 0) 
                         {
                             //https://www.youtube.com/watch?v=x_SEyKtCBPU
-                            distFromLighttoPlane = dot(triangles[j].p3WPos - lights[i].loc, triangles[j].normal) / parallelDot; 
+                            distFromLighttoPlane = 
+                                dot(triangles[j].p3WPos - lights[i].loc, triangles[j].normal) /
+                                parallelDot; 
                         
                             if (distFromLighttoPlane >= distUVtoLight - eps)
                                 continue;
 
                             float3 intersection = lights[i].loc + (distFromLighttoPlane * lightVec);
-                            float3 abc;
+                            //if the intersection is in the triangle, 
+                            //then the triangle casts a shadow on the texel
                             if (checkIntersectionInTri(intersection, triangles[j]))
                             {
-                                shadowHit = true;
-                                threadShad = 1;
-                                if(lights[i].shadowType == 2)
+                                shad = 0;
+                                if (lights[i].shadowType == 2)//dynamic blur shadows
                                 {
                                     float distFromInterToUV = length(intersection - uvWPos);
-      
-                                    //this should be changed to only have blurring process 
-                                    //take place if the mindDist is changed. That way it's not done every loop. 
+
                                     if (minDistUVtoInter != 0)
                                     {
                                         minDistUVtoInter = min(distFromInterToUV, minDistUVtoInter);
-                                        maxDistUVtoInter = max(distFromInterToUV, maxDistUVtoInter);
                                     }
                                     else
                                     {
                                         minDistUVtoInter = distFromInterToUV;
-                                        maxDistUVtoInter = distFromInterToUV;// investigate how this could be used
                                     }
                                         
                                     float blurAmount = (minDistUVtoInter / distUVtoLight);
                                     blurAmount = pow(blurAmount, lights[i].blurPower);
                                     blurAmount *= lights[i].blurMultiplier;
                                 
-                                    threadShad -= blurAmount;
-                                    threadShad = clamp(threadShad, 0, 1);
+                                    shad += blurAmount;
+                                    shad = clamp(shad, 0, 1);
                                 }
                                 else
-                                    // we need to go through every triangle for the dynamic blur since 
-                                    //it is based off the nearest triangle depth, and the first triangle in the 
-                                    //loop may not be the nearest. However for solid shadow, that's not necessary,
-                                    //so we can break the loop as soon as we find a triangle that shades the texel
+                                    // we need to go through every triangle for the dynamic blur since
+                                    //it is based off the nearest triangle depth, and the first 
+                                    //triangle in the loop may not be the nearest. However for solid 
+                                    //shadow, that's not necessary, so we can break the loop 
+                                    //as soon as we find a triangle that shades the texel
                                     break;
                             }
                         }
@@ -208,12 +202,12 @@ void DynamicLight(uint3 id : SV_DispatchThreadID)
                 }
                 if (angleBetweenLightAndLocWNormalMap < 0)
                 {
-                    float4 val = (1 - distUVtoLight / lights[i].range) * -1 * angleBetweenLightAndLocWNormalMap;
-                    threadUnlit = (1 - threadShad) * val * val * (float)usedUVs[uvInd].lit * lights[i].color * lights[i].intensity;
+                    float4 val = 
+                        (1 - distUVtoLight / lights[i].range) * abs(angleBetweenLightAndLocWNormalMap);
+                    lit = shad * val * val * lights[i].color * lights[i].intensity;
                 }
             }
-            totalResult[id.xy] += threadUnlit;
-            //totalResult[id.xy] = clamp(totalResult[id.xy], 0, 1);
+            totalResult[id.xy] += lit;
         }
     }
 }

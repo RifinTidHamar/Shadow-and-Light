@@ -54,7 +54,6 @@ public class Shading : MonoBehaviour
         public Vector3 normal;
         public Vector3 geoNormal;
         public int used;
-        public int lit;
     };
 
     ComputeBuffer triangleBuffer;
@@ -72,7 +71,7 @@ public class Shading : MonoBehaviour
     int usedUVNum;// = texRes * texRes;
     int meshTriangleSize = sizeof(float) * 18 + sizeof(float) * 6;
     int lightSize = sizeof(int) * 1 + sizeof(float) * 11;
-    int usedUVSize = sizeof(float) * 9 + sizeof(int) * 2;
+    int usedUVSize = sizeof(float) * 9 + sizeof(int) * 1;
     GameObject[] lightObject;
     LightData[] lightData;
 
@@ -167,7 +166,6 @@ public class Shading : MonoBehaviour
             usedUVsArr[i].normal = new Vector3(0, 0, 0);
             usedUVsArr[i].geoNormal = new Vector3(0, 0, 0);
             usedUVsArr[i].used = 0;
-            usedUVsArr[i].lit = 1;
         }
     }
 
